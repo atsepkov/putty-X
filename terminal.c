@@ -10,6 +10,7 @@
 #include <assert.h>
 #include "putty.h"
 #include "terminal.h"
+#include "charset.h"
 
 #define poslt(p1,p2) ( (p1).y < (p2).y || ( (p1).y == (p2).y && (p1).x < (p2).x ) )
 #define posle(p1,p2) ( (p1).y < (p2).y || ( (p1).y == (p2).y && (p1).x <= (p2).x ) )
@@ -44,6 +45,17 @@
 #define TM_VT220	(TM_VT102|CL_VT220)
 #define TM_VTXXX	(TM_VT220|CL_VT340TEXT|CL_VT510|CL_VT420|CL_VT320)
 #define TM_SCOANSI	(CL_ANSIMIN|CL_SCOANSI)
+
+#define MM_NONE         0x00           /* No tracking */
+#define MM_NORMAL       0x01           /* Normal tracking mode */
+#define MM_BTN_EVENT    0x02           /* Button event mode */
+#define MM_ANY_EVENT    0x03           /* Any event mode */
+
+/** Mouse tracking protocols */
+#define MP_NORMAL       0x00           /* CSI M Cb Cx Cy */
+#define MP_URXVT        0x01           /* CSI Db ; Dx ; Dy M */
+#define MP_SGR          0x02           /* CSI Db ; Dx ; Dy M/m */
+#define MP_XTERM        0x03           /* CSI M Cb WCx WCy */
 
 #define TM_PUTTY	(0xFFFF)
 
@@ -1223,7 +1235,8 @@ static void power_on(Terminal *term, int clear)
     term->erase_char = term->basic_erase_char;
     term->alt_which = 0;
     term_print_finish(term);
-    term->xterm_mouse = 0;
+    term->xterm_mouse_mode = MM_NONE;
+    term->xterm_mouse_protocol = MP_NORMAL;
     set_raw_mouse_mode(term->frontend, FALSE);
     {
 	int i;
@@ -1390,7 +1403,7 @@ void term_reconfig(Terminal *term, Config *cfg)
     if (term->cfg.no_alt_screen)
 	swap_screen(term, 0, FALSE, FALSE);
     if (term->cfg.no_mouse_rep) {
-	term->xterm_mouse = 0;
+	term->xterm_mouse_mode = MM_NONE;
 	set_raw_mouse_mode(term->frontend, 0);
     }
     if (term->cfg.no_remote_charset) {
@@ -2391,13 +2404,26 @@ static void toggle_mode(Terminal *term, int mode, int query, int state)
 	    term->disptop = 0;
 	    break;
 	  case 1000:		       /* xterm mouse 1 (normal) */
-	    term->xterm_mouse = state ? 1 : 0;
+	    term->xterm_mouse_mode = state ? MM_NORMAL : MM_NONE;
 	    set_raw_mouse_mode(term->frontend, state);
 	    break;
 	  case 1002:		       /* xterm mouse 2 (inc. button drags) */
-	    term->xterm_mouse = state ? 2 : 0;
+	    term->xterm_mouse_mode = state ? MM_BTN_EVENT : MM_NONE;
 	    set_raw_mouse_mode(term->frontend, state);
 	    break;
+ 	  case 1003:		       /* xterm any event tracking */
+ 	    term->xterm_mouse_mode = state ? MM_ANY_EVENT : MM_NONE;
+ 	    set_raw_mouse_mode(term->frontend, state);
+ 	    break;
+	  case 1005:		       /* use XTERM 1005 mouse protocol */
+	    term->xterm_mouse_protocol = state ? MP_XTERM : MP_NORMAL;
+	    break;
+ 	  case 1006:		       /* use SGR 1006 mouse protocol */
+ 	    term->xterm_mouse_protocol = state ? MP_SGR : MP_NORMAL;
+ 	    break;
+ 	  case 1015:		       /* use URXVT 1015 mouse protocol */
+ 	    term->xterm_mouse_protocol = state ? MP_URXVT : MP_NORMAL;
+ 	    break;
 	  case 1047:                   /* alternate screen */
 	    compatibility(OTHER);
 	    deselect(term);
@@ -5648,7 +5674,7 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
 {
     pos selpoint;
     termline *ldata;
-    int raw_mouse = (term->xterm_mouse &&
+    int raw_mouse = (term->xterm_mouse_mode &&
 		     !term->cfg.no_mouse_rep &&
 		     !(term->cfg.mouse_override && shift));
     int default_seltype;
@@ -5701,36 +5727,47 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
     if (raw_mouse &&
 	(term->selstate != ABOUT_TO) && (term->selstate != DRAGGING)) {
 	int encstate = 0, r, c;
-	char abuf[16];
+	char abuf[64];
+	char m; /* SGR 1006's postfix character ('M' or 'm') */
+	size_t l;
 
 	if (term->ldisc) {
 
 	    switch (braw) {
 	      case MBT_LEFT:
-		encstate = 0x20;	       /* left button down */
+		encstate = 0x00;	       /* left button down */
 		break;
 	      case MBT_MIDDLE:
-		encstate = 0x21;
+		encstate = 0x01;
 		break;
 	      case MBT_RIGHT:
-		encstate = 0x22;
+		encstate = 0x02;
 		break;
 	      case MBT_WHEEL_UP:
-		encstate = 0x60;
+		encstate = 0x40;
 		break;
 	      case MBT_WHEEL_DOWN:
-		encstate = 0x61;
+		encstate = 0x41;
+		break;
+		  case MBT_NOTHING:        /* for any event tracking */
+		encstate = 0x03;
 		break;
 	      default: break;	       /* placate gcc warning about enum use */
 	    }
 	    switch (a) {
 	      case MA_DRAG:
-		if (term->xterm_mouse == 1)
+		if (term->xterm_mouse_mode == MM_NORMAL)
 		    return;
 		encstate += 0x20;
 		break;
+		  case MA_MOVE:
+ 		if (term->xterm_mouse_mode != MM_ANY_EVENT)
+ 		    return;
+ 		encstate += 0x20;      /* add motion indicator */
+ 		break;
 	      case MA_RELEASE:
-		encstate = 0x23;
+ 		if (term->xterm_mouse_protocol != MP_SGR)
+		    encstate = 0x03;
 		term->mouse_is_down = 0;
 		break;
 	      case MA_CLICK:
@@ -5744,11 +5781,53 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
 		encstate += 0x04;
 	    if (ctrl)
 		encstate += 0x10;
-	    r = y + 33;
-	    c = x + 33;
 
-	    sprintf(abuf, "\033[M%c%c%c", encstate, c, r);
-	    ldisc_send(term->ldisc, abuf, 6, 0);
+	    switch (term->xterm_mouse_protocol) {
+	      case MP_NORMAL:
+		/* add safety to avoid sending garbage sequences */
+		if (x < 223 && y < 223) {
+		  encstate += 0x20;
+		  r = y + 33;
+		  c = x + 33;
+		  sprintf(abuf, "\033[M%c%c%c", encstate, c, r);
+		  ldisc_send(term->ldisc, abuf, 6, 0);
+		}
+		break;
+	      case MP_URXVT:
+		encstate += 0x20;
+		r = y + 1;
+		c = x + 1;
+		sprintf(abuf, "\033[%d;%d;%dM", encstate, c, r);
+		l = strlen(abuf);
+		ldisc_send(term->ldisc, abuf, l, 0);
+		break;
+	      case MP_SGR:
+		r = y + 1;
+		c = x + 1;
+		m = a == MA_RELEASE ? 'm': 'M';
+		sprintf(abuf, "\033[<%d;%d;%d%c", encstate, c, r, m);
+		l = strlen(abuf);
+		ldisc_send(term->ldisc, abuf, l, 0);
+		break;
+	      case MP_XTERM:
+		/* add safety to avoid sending garbage sequences */
+		if (x < 2015 && y < 2015) {
+		  encstate += 0x20;
+		  wchar_t input[2];
+		  wchar_t *inputp = input;
+		  int inputlen = 2;
+		  input[0] = x + 33;
+		  input[1] = y + 33;
+		  
+		  l = sprintf(abuf, "\033[M%c", encstate);
+		  l += charset_from_unicode(&inputp, &inputlen,
+					    abuf + l, 4,
+					    CS_UTF8, NULL, NULL, 0);
+		  ldisc_send(term->ldisc, abuf, l, 0);
+		}
+		break;
+	      default: break;	       /* placate gcc warning about enum use */
+	    }
 	}
 	return;
     }

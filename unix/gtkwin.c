@@ -1212,7 +1212,7 @@ gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer data)
 gint motion_event(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
     struct gui_data *inst = (struct gui_data *)data;
-    int shift, ctrl, alt, x, y, button;
+    int shift, ctrl, alt, x, y, button, act;
 
     /* Remember the timestamp. */
     inst->input_event_time = event->time;
@@ -1222,19 +1222,25 @@ gint motion_event(GtkWidget *widget, GdkEventMotion *event, gpointer data)
     shift = event->state & GDK_SHIFT_MASK;
     ctrl = event->state & GDK_CONTROL_MASK;
     alt = event->state & GDK_MOD1_MASK;
-    if (event->state & GDK_BUTTON1_MASK)
-	button = MBT_LEFT;
-    else if (event->state & GDK_BUTTON2_MASK)
-	button = MBT_MIDDLE;
-    else if (event->state & GDK_BUTTON3_MASK)
+
+    if (event->state & GDK_BUTTON1_MASK) {
+ 	button = MBT_LEFT;
+	act = MA_DRAG;
+    } else if (event->state & GDK_BUTTON2_MASK) {
+ 	button = MBT_MIDDLE;
+	act = MA_DRAG;
+    } else if (event->state & GDK_BUTTON3_MASK) {
 	button = MBT_RIGHT;
-    else
-	return FALSE;		       /* don't even know what button! */
+	act = MA_DRAG;
+    } else {
+	button = MBT_NOTHING;	       /* no button is pressed */
+	act = MA_MOVE;
+    }
 
     x = (event->x - inst->cfg.window_border) / inst->font_width;
     y = (event->y - inst->cfg.window_border) / inst->font_height;
 
-    term_mouse(inst->term, button, translate_button(button), MA_DRAG,
+    term_mouse(inst->term, button, translate_button(button), act,
 	       x, y, shift, ctrl, alt);
 
     return TRUE;

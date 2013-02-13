@@ -278,6 +278,9 @@ WINMISC  = MISC winstore winnet winhandl cmdline windefs winmisc winproxy
 UXMISC   = MISC uxstore uxsel uxnet cmdline uxmisc uxproxy time
 OSXMISC  = MISC uxstore uxsel osxsel uxnet uxmisc uxproxy time
 
+# Extended mouse support (> 223 characters)
+UTF8MOUSE = fromucs slookup sbcsdat sbcs utf8
+
 # Character set library, for use in pterm.
 CHARSET  = sbcsdat slookup sbcs utf8 toucs fromucs xenc mimeenc macenc localenc
 
@@ -304,8 +307,8 @@ U_BE_NOSSH = be_nos_s uxser nocproxy
 # keywords [G] for Windows GUI app, [C] for Console app, [X] for
 # X/GTK Unix app, [U] for command-line Unix app.
 
-putty    : [G] GUITERM NONSSH WINSSH W_BE_ALL WINMISC winx11 putty.res LIBS
-puttytel : [G] GUITERM NONSSH W_BE_NOSSH WINMISC puttytel.res nogss LIBS
+putty    : [G] GUITERM NONSSH WINSSH W_BE_ALL WINMISC winx11 putty.res UTF8MOUSE LIBS
+puttytel : [G] GUITERM NONSSH W_BE_NOSSH WINMISC puttytel.res nogss UTF8MOUSE LIBS
 plink    : [C] winplink wincons NONSSH WINSSH W_BE_ALL logging WINMISC
          + winx11 plink.res winnojmp LIBS
 pscp     : [C] pscp winsftp wincons WINSSH BE_SSH SFTP wildcard WINMISC
@@ -320,7 +323,7 @@ pageant  : [G] winpgnt sshrsa sshpubk sshdes sshbn sshmd5 version tree234
 puttygen : [G] winpgen sshrsag sshdssg sshprime sshdes sshbn sshmd5 version
          + sshrand winnoise sshsha winstore misc winctrls sshrsa sshdss winmisc
          + sshpubk sshaes sshsh256 sshsh512 import winutils puttygen.res
-	 + tree234 notiming winhelp winnojmp LIBS wintime
+	 + tree234 notiming winhelp winnojmp UTF8MOUSE LIBS wintime
 
 pterm    : [X] GTKTERM uxmisc misc ldisc settings uxpty uxsel BE_NONE uxstore
          + uxsignal CHARSET cmdline uxpterm version time xpmpterm xpmptcfg
