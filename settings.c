@@ -449,6 +449,8 @@ void save_open_settings(void *sesskey, Config *cfg)
     write_setting_i(sesskey, "WindowBorder", cfg->window_border);
     write_setting_i(sesskey, "CurType", cfg->cursor_type);
     write_setting_i(sesskey, "BlinkCur", cfg->blink_cur);
+    write_setting_i(sesskey, "Transparency", cfg->transparency);
+    write_setting_i(sesskey, "OpaqueWhenFocused", cfg->opaque_when_focused);
     write_setting_i(sesskey, "Beep", cfg->beep);
     write_setting_i(sesskey, "BeepInd", cfg->beep_ind);
     write_setting_filename(sesskey, "BellWaveFile", cfg->bell_wavefile);
@@ -757,6 +759,8 @@ void load_open_settings(void *sesskey, Config *cfg)
     gppi(sesskey, "WindowBorder", 1, &cfg->window_border);
     gppi(sesskey, "CurType", 0, &cfg->cursor_type);
     gppi(sesskey, "BlinkCur", 0, &cfg->blink_cur);
+    gppi(sesskey, "Transparency", 0, &cfg->transparency);
+    gppi(sesskey, "OpaqueWhenFocused", 0, &cfg->opaque_when_focused);
     /* pedantic compiler tells me I can't use &cfg->beep as an int * :-) */
     gppi(sesskey, "Beep", 1, &cfg->beep);
     gppi(sesskey, "BeepInd", 0, &cfg->beep_ind);

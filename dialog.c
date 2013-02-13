@@ -473,7 +473,13 @@ void dlg_stdradiobutton_handler(union control *ctrl, void *dlg,
 		ctrl->radio.buttondata[button].i)
 		break;
 	/* We expected that `break' to happen, in all circumstances. */
-	assert(button < ctrl->radio.nbuttons);
+	/* assert(button < ctrl->radio.nbuttons); */
+	/* It can now unfortunately happen that that it won't - 
+	 * when a radio button that previously existed now doesn't.
+	 * In that case, we default to the first button
+	 */
+	if (button >= ctrl->radio.nbuttons)
+	    button = 0;
 	dlg_radiobutton_set(ctrl, dlg, button);
     } else if (event == EVENT_VALCHANGE) {
 	button = dlg_radiobutton_get(ctrl, dlg);

@@ -15,6 +15,19 @@
 
 #include "winhelp.h"
 
+#include <winbase.h>
+#include <wingdi.h>
+#include <uxtheme.h>		       /* for struct MARGINS */
+
+#if WINVER < 0x500 || _WIN32_WINNT < 0x0501
+typedef struct _MARGINS {
+  int cxLeftWidth;
+  int cxRightWidth;
+  int cyTopHeight;
+  int cyBottomHeight;
+} MARGINS, *PMARGINS;
+#endif
+
 struct Filename {
     char path[FILENAME_MAX];
 };
@@ -461,6 +474,7 @@ void show_help(HWND hwnd);
  */
 extern OSVERSIONINFO osVersion;
 BOOL init_winver(void);
+BOOL is_glass_available(void);
 HMODULE load_system32_dll(const char *libname);
 
 /*

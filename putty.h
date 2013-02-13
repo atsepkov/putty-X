@@ -601,6 +601,8 @@ struct config_tag {
     int hide_mouseptr;
     int sunken_edge;
     int window_border;
+    int transparency;		       /* window transparency level */
+    int opaque_when_focused;
     char answerback[256];
     char printer[128];
     int arabicshaping;

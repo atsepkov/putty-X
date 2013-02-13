@@ -9,6 +9,7 @@
 #include "putty.h"
 #include "dialog.h"
 #include "storage.h"
+#include "winstuff.h"		       /* for is_glass_available() */
 
 static void about_handler(union control *ctrl, void *dlg,
 			  void *data, int event)
@@ -46,6 +47,7 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
     struct controlset *s;
     union control *c;
     char *str;
+    BOOL with_glass;
 
     if (!midsession) {
 	/*
@@ -96,6 +98,22 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
             }
         }
     }
+
+    s = ctrl_getset(b, "Window/Appearance", "trans", "Transparency");
+    with_glass = is_glass_available();
+    ctrl_radiobuttons(s, NULL, NO_SHORTCUT, with_glass ? 5 : 4, 
+		      HELPCTX(appearance_transparency), 
+		      dlg_stdradiobutton_handler, 
+		      I(offsetof(Config,transparency)),
+		      "Off", NO_SHORTCUT, I(0),
+		      "Low", NO_SHORTCUT, I(1),
+		      with_glass ? "Med." : "Medium", NO_SHORTCUT, I(2),
+		      "High", NO_SHORTCUT, I(3),
+		      with_glass ? "Glass" : NULL, NO_SHORTCUT, I(-1), NULL);
+    ctrl_checkbox(s, "Opaque when focused", NO_SHORTCUT, 
+		  HELPCTX(appearance_opaquefocus),
+		  dlg_stdcheckbox_handler, 
+		  I(offsetof(Config,opaque_when_focused)));
 
     /*
      * Windows has the AltGr key, which has various Windows-

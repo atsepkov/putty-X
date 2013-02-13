@@ -71,6 +71,8 @@
 #define WINHELP_CTX_appearance_title "appearance.title:config-title"
 #define WINHELP_CTX_appearance_hidemouse "appearance.hidemouse:config-mouseptr"
 #define WINHELP_CTX_appearance_border "appearance.border:config-winborder"
+#define WINHELP_CTX_appearance_transparency "appearance.transparency:config-transparency"
+#define WINHELP_CTX_appearance_opaquefocus "appearance.opaquefocus:config-opaquefocus"
 #define WINHELP_CTX_connection_termtype "connection.termtype:config-termtype"
 #define WINHELP_CTX_connection_termspeed "connection.termspeed:config-termspeed"
 #define WINHELP_CTX_connection_username "connection.username:config-username"

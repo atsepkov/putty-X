@@ -202,6 +202,54 @@ static int compose_state = 0;
 
 static UINT wm_mousewheel = WM_MOUSEWHEEL;
 
+static BOOL (WINAPI *pSetLayeredWindowAttributes)(HWND,COLORREF,BYTE,DWORD);
+static HRESULT (WINAPI *pDwmIsCompositionEnabled)(BOOL *);
+static HRESULT (WINAPI *pDwmExtendFrameIntoClientArea)(HWND, const MARGINS *);
+
+static void load_funcs(void)
+{
+    HMODULE user;
+    HMODULE dwm;
+    user = LoadLibrary("user32");
+    pSetLayeredWindowAttributes =
+        (void *)GetProcAddress(user, "SetLayeredWindowAttributes");
+
+    dwm = LoadLibrary("dwmapi");
+    pDwmIsCompositionEnabled =
+        (void *)GetProcAddress(dwm, "DwmIsCompositionEnabled");
+    pDwmExtendFrameIntoClientArea =
+        (void *)GetProcAddress(dwm, "DwmExtendFrameIntoClientArea");
+}
+
+BOOL is_glass_available(void)
+{
+    BOOL result = FALSE;
+    if (pDwmIsCompositionEnabled)
+        pDwmIsCompositionEnabled(&result);
+    return result;
+}
+
+static void enable_glass(BOOL enabled)
+{
+	MARGINS m = {enabled ? -1 : 0, 0, 0, 0};
+    if (pDwmExtendFrameIntoClientArea)
+        pDwmExtendFrameIntoClientArea(hwnd, &m);
+}
+
+static void update_transparency(void)
+{
+    BOOL opaque = cfg.opaque_when_focused && term->has_focus;
+    if (pSetLayeredWindowAttributes) {
+        int trans = max(cfg.transparency, 0);
+        SetWindowLong(hwnd, GWL_EXSTYLE, trans ? WS_EX_LAYERED : 0);
+        if (trans) {
+            unsigned char alpha = opaque ? 255 : 255 - 16 * trans;
+            pSetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
+        }
+    }
+    enable_glass(cfg.transparency < 0 && !is_full_screen() && !opaque);
+}
+
 /* Dummy routine, only required in plink. */
 void ldisc_update(void *frontend, int echo, int edit)
 {
@@ -334,6 +382,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
     flags = FLAG_VERBOSE | FLAG_INTERACTIVE;
 
     sk_init();
+    load_funcs();
 
     InitCommonControls();
 
@@ -1702,6 +1751,8 @@ static void reset_window(int reinit) {
 	init_fonts(0,0);
     }
 
+    update_transparency();
+
     /* Oh, looks like we're minimised */
     if (win_width == 0 || win_height == 0)
 	return;
@@ -2636,6 +2687,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	flash_window(0);	       /* stop */
 	compose_state = 0;
 	term_update(term);
+	update_transparency();
 	break;
       case WM_KILLFOCUS:
 	show_mouseptr(1);
@@ -2643,6 +2695,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	DestroyCaret();
 	caret_x = caret_y = -1;	       /* ensure caret is replaced next time */
 	term_update(term);
+	update_transparency();
 	break;
       case WM_ENTERSIZEMOVE:
 #ifdef RDB_DEBUG_PATCH
