@@ -343,7 +343,7 @@ static void create_controls(HWND hwnd, char *path)
 	/*
 	 * Here we must create the basic standard controls.
 	 */
-	ctlposinit(&cp, hwnd, 3, 3, 260);
+	ctlposinit(&cp, hwnd, 3, 3, 270);
 	wc = &ctrls_base;
 	base_id = IDCX_STDBASE;
     } else {
