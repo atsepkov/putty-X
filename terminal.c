@@ -6109,7 +6109,7 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
     term_update(term);
 }
 
-int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl)
+int format_arrow_key(char *buf, Terminal *term, int xkey, int modifier, int alt)
 {
     char *p = buf;
 
@@ -6132,14 +6132,18 @@ int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl)
 	if (!term->app_keypad_keys)
 	    app_flg = 0;
 #endif
-	/* Useful mapping of Ctrl-arrows */
-	if (ctrl)
-	    app_flg = !app_flg;
-
-	if (app_flg)
-	    p += sprintf((char *) p, "\x1BO%c", xkey);
+	if (modifier == 1 && alt == 1)
+    	p += sprintf((char *) p, "\x1B[1;10%c", xkey); /* Alt-Shift */
+	else if (alt == 1)
+    	p += sprintf((char *) p, "\x1B[1;3%c", xkey); /* Alt */
+	else if (modifier == 1)
+    	p += sprintf((char *) p, "\x1B[1;2%c", xkey); /* Shift */
+	else if (modifier)
+		p += sprintf((char *) p, "\x1B[1;5%c", xkey); /* Control */
+	else if (app_flg)
+		p += sprintf((char *) p, "\x1BO%c", xkey); /* Application mode */
 	else
-	    p += sprintf((char *) p, "\x1B[%c", xkey);
+		p += sprintf((char *) p, "\x1B[%c", xkey); /* Normal */
     }
 
     return p - buf;
@@ -6521,7 +6525,7 @@ void term_key(Terminal *term, Key_Sym keysym, wchar_t *text, size_t tlen,
 	  case PK_REST:  xkey = 'G'; break; /* centre key on number pad */
 	  default: xkey = 0; break; /* else gcc warns `enum value not used' */
 	}
-	p += format_arrow_key(p, term, xkey, modifiers == PKM_CONTROL);
+	p += format_arrow_key(p, term, xkey, modifiers == PKM_CONTROL,0);
 	goto done;
     }
 
