@@ -5760,7 +5760,7 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
 		    return;
 		encstate += 0x20;
 		break;
-		  case MA_MOVE:
+	      case MA_MOVE:
  		if (term->xterm_mouse_mode != MM_ANY_EVENT)
  		    return;
  		encstate += 0x20;      /* add motion indicator */
