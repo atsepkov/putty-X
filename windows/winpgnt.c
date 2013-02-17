@@ -92,7 +92,7 @@ DWORD errorShow(const char* pcErrText, const char* pcErrParam)
     char* pcHlaska;
 
     if (pcErrParam) {
-	cHlaska = snewn(strlen(pcErrParam) + strlen(pcErrText) + 31, char);
+	pcHlaska = snewn(strlen(pcErrParam) + strlen(pcErrText) + 31, char);
     }
     else {
 	pcHlaska = snewn(strlen(pcErrText) + 31, char);
