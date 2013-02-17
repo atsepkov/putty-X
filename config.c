@@ -871,16 +871,24 @@ struct environ_data {
     union control *varbox, *valbox, *addbutton, *rembutton, *listbox;
 };
 
-static void environ_handler(union control *ctrl, void *dlg,
-			    void *data, int event)
+/*
+ * Let's reuse the same environ_data structure to store Xresources map.
+ * To avoid unintentionally mixing our map with environment variables,
+ * let's modify the way environ_handler works, to allow us to store to
+ * multiple containers.
+ */
+
+// The actual storage logic will happen here
+static void environ_storage_handler(union control *ctrl, void *dlg,
+			    void *data, int event, char *container,
+			    size_t container_size)
 {
-    Config *cfg = (Config *)data;
     struct environ_data *ed =
 	(struct environ_data *)ctrl->generic.context.p;
 
     if (event == EVENT_REFRESH) {
 	if (ctrl == ed->listbox) {
-	    char *p = cfg->environmt;
+	    char *p = container;
 	    dlg_update_start(ctrl, dlg);
 	    dlg_listbox_clear(ctrl, dlg);
 	    while (*p) {
@@ -891,7 +899,7 @@ static void environ_handler(union control *ctrl, void *dlg,
 	}
     } else if (event == EVENT_ACTION) {
 	if (ctrl == ed->addbutton) {
-	    char str[sizeof(cfg->environmt)];
+	    char str[container_size];
 	    char *p;
 	    dlg_editbox_get(ed->varbox, dlg, str, sizeof(str)-1);
 	    if (!*str) {
@@ -905,14 +913,14 @@ static void environ_handler(union control *ctrl, void *dlg,
 		dlg_beep(dlg);
 		return;
 	    }
-	    p = cfg->environmt;
+	    p = container;
 	    while (*p) {
 		while (*p)
 		    p++;
 		p++;
 	    }
-	    if ((p - cfg->environmt) + strlen(str) + 2 <
-		sizeof(cfg->environmt)) {
+	    if ((p - container) + strlen(str) + 2 <
+		container_size) {
 		strcpy(p, str);
 		p[strlen(str) + 1] = '\0';
 		dlg_listbox_add(ed->listbox, dlg, str);
@@ -929,7 +937,7 @@ static void environ_handler(union control *ctrl, void *dlg,
 		char *p, *q, *str;
 
 		dlg_listbox_del(ed->listbox, dlg, i);
-		p = cfg->environmt;
+		p = container;
 		while (i > 0) {
 		    if (!*p)
 			goto disaster;
@@ -966,6 +974,21 @@ static void environ_handler(union control *ctrl, void *dlg,
 	    }
 	}
     }
+}
+
+// Access to the storage logic will happen through these two handlers
+static void xresources_handler(union control *ctrl, void *dlg,
+			    void *data, int event)
+{
+    Config *cfg = (Config *)data;
+    environ_storage_handler(ctrl, dlg, data, event, cfg->xresources_map, sizeof(cfg->xresources_map));
+}
+
+static void environ_handler(union control *ctrl, void *dlg,
+			    void *data, int event)
+{
+    Config *cfg = (Config *)data;
+    environ_storage_handler(ctrl, dlg, data, event, cfg->environmt, sizeof(cfg->environmt));
 }
 
 struct portfwd_data {
@@ -1528,26 +1551,26 @@ void setup_config_box(struct controlbox *b, int midsession,
 	    ctrl_alloc(b, sizeof(struct environ_data));
 	ed->varbox = ctrl_editbox(s, "Original Name", NO_SHORTCUT, 60,
 				  HELPCTX(xresources_map),
-				  environ_handler, P(ed), P(NULL));
+				  xresources_handler, P(ed), P(NULL));
 	ed->varbox->generic.column = 0;
 	ed->valbox = ctrl_editbox(s, "Putty Name", NO_SHORTCUT, 60,
 				  HELPCTX(xresources_map),
-				  environ_handler, P(ed), P(NULL));
+				  xresources_handler, P(ed), P(NULL));
 	ed->valbox->generic.column = 0;
 	ed->addbutton = ctrl_pushbutton(s, "Add", 'd',
 					HELPCTX(xresources_map),
-					environ_handler, P(ed));
+					xresources_handler, P(ed));
 	ed->addbutton->generic.column = 1;
 	ed->rembutton = ctrl_pushbutton(s, "Remove", 'r',
 					HELPCTX(xresources_map),
-					environ_handler, P(ed));
+					xresources_handler, P(ed));
 	ed->rembutton->generic.column = 1;
 	ctrl_columns(s, 1, 100);
 	ctrl_text(s, "Translation Table (Application Name -> Putty Name)",
 		  HELPCTX(xresources_map));
 	ed->listbox = ctrl_listbox(s, NULL, NO_SHORTCUT,
 				   HELPCTX(xresources_map),
-				   environ_handler, P(ed));
+				   xresources_handler, P(ed));
 	ed->listbox->listbox.height = 12;
 	ed->listbox->listbox.ncols = 2;
 	ed->listbox->listbox.percentages = snewn(2, int);

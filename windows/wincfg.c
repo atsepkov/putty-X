@@ -202,7 +202,7 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
      */
     s = ctrl_getset(b, "Terminal/Xresources", "settings", "Reuse settings file from X");
     ctrl_filesel(s, "Location of the file (.Xdefaults/.Xresources/etc.):", NO_SHORTCUT,
-		 FILTER_WAVE_FILES, FALSE, "Select terminal settings file you use in X",
+		 FILTER_NO_FILES, FALSE, "Select terminal settings file you use in X",
 		 HELPCTX(xresources_file),
 		 dlg_stdfilesel_handler, I(offsetof(Config, xresources_file)));
     {
