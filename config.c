@@ -1509,6 +1509,17 @@ void setup_config_box(struct controlbox *b, int midsession,
 		  I(offsetof(Config, bidi)));
 
     /*
+     * The Terminal/Xresources panel.
+     */
+    ctrl_settitle(b, "Terminal/Xresources",
+		  "Optional Xresources file to overwrite defaults");
+    s = ctrl_getset(b, "Terminal/Xresources", "settings", "Reuse settings file from X");
+    c = ctrl_editbox(s, "Relevant Class Names", NO_SHORTCUT, 100,
+		     HELPCTX(xresources_classes),
+		     dlg_stdeditbox_handler, I(offsetof(Config,xresources_apps)),
+		     I(sizeof(((Config *)0)->xresources_apps)));
+
+    /*
      * The Window panel.
      */
     str = dupprintf("Options controlling %s's window", appname);

@@ -467,6 +467,7 @@ void save_open_settings(void *sesskey, Config *cfg)
 		    * 1000
 #endif
 		    );
+    write_setting_s(sesskey, "XresourcesApps", cfg->xresources_apps);
     write_setting_i(sesskey, "ScrollbackLines", cfg->savelines);
     write_setting_i(sesskey, "DECOriginMode", cfg->dec_om);
     write_setting_i(sesskey, "AutoWrapMode", cfg->wrap_mode);
@@ -616,6 +617,10 @@ void load_open_settings(void *sesskey, Config *cfg)
 	    gppi(sesskey, "PortNumber", default_port, &cfg->port);
 	}
     }
+    
+    /* Xresources defaults */
+    gpps(sesskey, "XresourcesApps", "URxvt Rxvt Putty", cfg->xresources_apps,
+	 sizeof(cfg->xresources_apps));
 
     /* Address family selection */
     gppi(sesskey, "AddressFamily", ADDRTYPE_UNSPEC, &cfg->addressfamily);

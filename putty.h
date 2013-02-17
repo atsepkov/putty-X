@@ -600,6 +600,7 @@ struct config_tag {
     int bellovl_s;		       /* period of silence to re-enable bell (s) */
     Filename bell_wavefile;
     Filename xresources_file;
+    char xresources_apps[1024];     /* space-delimited list of applications whose settings to pull in */
     int scrollbar;
     int scrollbar_in_fullscreen;
     int resize_action;
