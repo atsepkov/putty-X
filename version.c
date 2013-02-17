@@ -20,7 +20,7 @@ char sshver[] = "PuTTY-Snapshot-" SNAPSHOT_TEXT;
 
 #elif defined RELEASE
 
-char ver[] = "Release " STR(RELEASE) " modified by troydm";
+char ver[] = "Release " STR(RELEASE);
 char sshver[] = "PuTTY-Release-" STR(RELEASE);
 
 #elif defined PRERELEASE
