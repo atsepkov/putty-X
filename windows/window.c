@@ -4337,34 +4337,34 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	code = 0;
 	switch (wParam) {
 	  case VK_F1:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 23 : 11);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 23 : 11);
 	    break;
 	  case VK_F2:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 24 : 12);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 24 : 12);
 	    break;
 	  case VK_F3:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 25 : 13);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 25 : 13);
 	    break;
 	  case VK_F4:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 26 : 14);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 26 : 14);
 	    break;
 	  case VK_F5:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 28 : 15);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 28 : 15);
 	    break;
 	  case VK_F6:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 29 : 17);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 29 : 17);
 	    break;
 	  case VK_F7:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 31 : 18);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 31 : 18);
 	    break;
 	  case VK_F8:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 32 : 19);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 32 : 19);
 	    break;
 	  case VK_F9:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 33 : 20);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 33 : 20);
 	    break;
 	  case VK_F10:
-	    code = (keystate[VK_SHIFT] & 0x80 ? 34 : 21);
+	    code = (cfg.funky_type != FUNKY_XTERM && (keystate[VK_SHIFT] & 0x80) ? 34 : 21);
 	    break;
 	  case VK_F11:
 	    code = 23;
@@ -4480,10 +4480,21 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    return p - output;
 	}
 	if (cfg.funky_type == FUNKY_XTERM && code >= 11 && code <= 14) {
-	    if (term->vt52_mode)
+	    if (term->vt52_mode) {
 		p += sprintf((char *) p, "\x1B%c", code + 'P' - 11);
-	    else
-		p += sprintf((char *) p, "\x1BO%c", code + 'P' - 11);
+	    } else {
+		char * prefix;
+		if (shift_state == 1) {
+		    prefix = "[1;2";
+		} else if (shift_state == 2) {
+		    prefix = "[1;5";
+		} else if (shift_state == 3) {
+		    prefix = "[1;6";
+		} else {
+		    prefix = "O";
+		}
+		p += sprintf((char *) p, "\x1B%s%c", prefix, code + 'P' - 11);
+	    }
 	    return p - output;
 	}
 	if (code) {
