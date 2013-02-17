@@ -4530,8 +4530,18 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	 * Finally, deal with Return ourselves. (Win95 seems to
 	 * foul it up when Alt is pressed, for some reason.)
 	 */
-	if (wParam == VK_RETURN) {     /* Return */
-	    *p++ = 0x0D;
+	/* I'm going by what Mintty seems to be sending, since URXVT doesn't uniquely identify them all */
+	/* keycode reference used: http://code.google.com/p/mintty/wiki/Keycodes */
+	if (wParam == VK_RETURN) {
+	    if (shift_state == 1) {		/* Shift+Return */
+		*p++ = 0x00;
+	    } else if (shift_state == 2) {	/* Ctrl+Return */
+		*p++ = 0x1E;
+	    } else if (shift_state == 3) {	/* Ctrl+Shift+Return */
+		*p++ = 0x9E;
+	    } else {				/* Return */
+		*p++ = 0x0D;
+	    }
 	    *p++ = 0;
 	    return -2;
 	}

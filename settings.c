@@ -738,7 +738,7 @@ void load_open_settings(void *sesskey, Config *cfg)
     gppi(sesskey, "PassiveTelnet", 0, &cfg->passive_telnet);
     gppi(sesskey, "BackspaceIsDelete", 1, &cfg->bksp_is_delete);
     gppi(sesskey, "RXVTHomeEnd", 1, &cfg->rxvt_homeend);
-    gppi(sesskey, "LinuxFunctionKeys", 0, &cfg->funky_type);
+    gppi(sesskey, "LinuxFunctionKeys", 2, &cfg->funky_type);
     gppi(sesskey, "NoApplicationKeys", 0, &cfg->no_applic_k);
     gppi(sesskey, "NoApplicationCursors", 0, &cfg->no_applic_c);
     gppi(sesskey, "NoMouseReporting", 0, &cfg->no_mouse_rep);
