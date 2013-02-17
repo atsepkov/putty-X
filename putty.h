@@ -599,6 +599,7 @@ struct config_tag {
     int bellovl_t;		       /* time interval for overload (seconds) */
     int bellovl_s;		       /* period of silence to re-enable bell (s) */
     Filename bell_wavefile;
+    Filename xresources_file;
     int scrollbar;
     int scrollbar_in_fullscreen;
     int resize_action;

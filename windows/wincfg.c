@@ -192,6 +192,23 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 		      "Steady", I(B_IND_STEADY), NULL);
 
     /*
+     * This section allows us to reuse .Xresources/.Xdefaults file like we would
+     * when running xterm or rxvt. Since Unix/Linux version already does something
+     * similar for pterm, there is no need for this section there.
+     * 
+     * Admittedly, this aims to use setting names more similar to rxvt than
+     * pterm, but if I wanted the same functionality in *nix, I would just run
+     * rxvt/rxvt-unicode directly.
+     */
+    s = ctrl_getset(b, "Terminal/Xresources", "settings", "Reuse settings file from X");
+    ctrl_filesel(s, "Location of the file (.Xdefaults/.Xresources/etc.):", NO_SHORTCUT,
+		 FILTER_WAVE_FILES, FALSE, "Select terminal settings file you use in X",
+		 HELPCTX(xresources_file),
+		 dlg_stdfilesel_handler, I(offsetof(Config, xresources_file)));
+    {
+    }
+
+    /*
      * The sunken-edge border is a Windows GUI feature.
      */
     s = ctrl_getset(b, "Window/Appearance", "border",
