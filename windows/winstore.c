@@ -579,214 +579,214 @@ void *open_settings_r_inner(const char *sessionname)
 {
     HKEY subkey1, sesskey;
     char *p;
-	char *p2;
-	char *ses;
-	char *fileCont;
-	DWORD fileSize;
-	DWORD bytesRead;
-	HANDLE hFile;
-	struct setPack* sp;
-	struct setItem *st1, *st2;
+    char *p2;
+    char *ses;
+    char *fileCont;
+    DWORD fileSize;
+    DWORD bytesRead;
+    HANDLE hFile;
+    struct setPack* sp;
+    struct setItem *st1, *st2;
 
-	sp = snew( struct setPack );
+    sp = snew( struct setPack );
 
-	if (!sessionname || !*sessionname) {
-		sessionname = "Default Settings";
-	}
+    if (!sessionname || !*sessionname) {
+	sessionname = "Default Settings";
+    }
 
-	/* JK: in the first call of this function we initialize path variables */
-	if (*sesspath == '\0') {
-		loadPath();
-	}
+    /* JK: in the first call of this function we initialize path variables */
+    if (*sesspath == '\0') {
+	loadPath();
+    }
 
-	/* JK: if sessionname contains [registry] -> cut it off in another buffer */
-	if ( *(sessionname+strlen(sessionname)-1) == ']') {
-		ses = snewn(strlen(sessionname)+1, char);
-		strcpy(ses, sessionname);
+    /* JK: if sessionname contains [registry] -> cut it off in another buffer */
+    if ( *(sessionname+strlen(sessionname)-1) == ']') {
+	ses = snewn(strlen(sessionname)+1, char);
+	strcpy(ses, sessionname);
 
-		p = strrchr(ses, '[');
-		*(p-1) = '\0';
+	p = strrchr(ses, '[');
+	*(p-1) = '\0';
 
-		p = snewn(3 * strlen(ses) + 1, char);
-		mungestr(ses, p);
-		sfree(ses);
+	p = snewn(3 * strlen(ses) + 1, char);
+	mungestr(ses, p);
+	sfree(ses);
 
-		sp->fromFile = 0;
-	}
-	else if (INVALID_HANDLE_VALUE != CreateFile(sessionname, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL)) {
-		/* JK: 6.3.2009 - 0.3.5 - for running putty for session files */
-		p = snewn(2 * strlen(sessionname) + 1, char);
-		strcpy(p, sessionname);
-		sp->fromFile = 1;
+	sp->fromFile = 0;
+    }
+    else if (INVALID_HANDLE_VALUE != CreateFile(sessionname, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL)) {
+	/* JK: 6.3.2009 - 0.3.5 - for running putty for session files */
+	p = snewn(2 * strlen(sessionname) + 1, char);
+	strcpy(p, sessionname);
+	sp->fromFile = 1;
+    }
+    else {
+	p2 = snewn(3 * strlen(sessionname) + 1 + 16, char);
+	mungestr(sessionname, p2);
+
+	/* JK: secure pack for filename */
+	p = snewn(3 * strlen(p2) + 1 + 16, char);
+	packstr(p2, p);
+	strcat(p, sessionsuffix);
+	sfree(p2);
+
+	sp->fromFile = 1;
+    }
+
+    /* JK: default settings must be read from registry */
+    /* 8.1.2007 - 0.1.6 try to load them from file if exists - nasty code duplication */
+    if (!strcmp(sessionname, "Default Settings")) {
+	GetCurrentDirectory( (MAX_PATH*2), oldpath);
+	if (SetCurrentDirectory(sesspath)) {
+	    hFile = CreateFile(p, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 	}
 	else {
-		p2 = snewn(3 * strlen(sessionname) + 1 + 16, char);
-		mungestr(sessionname, p2);
-
-		/* JK: secure pack for filename */
-		p = snewn(3 * strlen(p2) + 1 + 16, char);
-		packstr(p2, p);
-		strcat(p, sessionsuffix);
-		sfree(p2);
-
-		sp->fromFile = 1;
+	    hFile = INVALID_HANDLE_VALUE;
 	}
-
-	/* JK: default settings must be read from registry */
-	/* 8.1.2007 - 0.1.6 try to load them from file if exists - nasty code duplication */
-	if (!strcmp(sessionname, "Default Settings")) {
-		GetCurrentDirectory( (MAX_PATH*2), oldpath);
-		if (SetCurrentDirectory(sesspath)) {
-			hFile = CreateFile(p, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-		}
-		else {
-			hFile = INVALID_HANDLE_VALUE;
-		}
-		SetCurrentDirectory(oldpath);
-		
-		if (hFile == INVALID_HANDLE_VALUE) {
-			sp->fromFile = 0;
-		}
-		else {
-			sp->fromFile = 1;
-			CloseHandle(hFile);
-		}
+	SetCurrentDirectory(oldpath);
+	
+	if (hFile == INVALID_HANDLE_VALUE) {
+	    sp->fromFile = 0;
 	}
+	else {
+	    sp->fromFile = 1;
+	    CloseHandle(hFile);
+	}
+    }
 
-	if (sp->fromFile) {
-		/* JK: session is in file -> open dir/file */
-		GetCurrentDirectory( (MAX_PATH*2), oldpath);
-		if (SetCurrentDirectory(sesspath)) {
-			hFile = CreateFile(p, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-		}
-		else {
-			hFile = INVALID_HANDLE_VALUE;
-		}
-		SetCurrentDirectory(oldpath);
-		
-		if (hFile == INVALID_HANDLE_VALUE) {
-			/* JK: some error occured -> just report and fail */
+    if (sp->fromFile) {
+	/* JK: session is in file -> open dir/file */
+	GetCurrentDirectory( (MAX_PATH*2), oldpath);
+	if (SetCurrentDirectory(sesspath)) {
+	    hFile = CreateFile(p, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+	}
+	else {
+	    hFile = INVALID_HANDLE_VALUE;
+	}
+	SetCurrentDirectory(oldpath);
+	
+	if (hFile == INVALID_HANDLE_VALUE) {
+	    /* JK: some error occured -> just report and fail */
 
-			/* JK: PSCP/PSFTP/PLINK always try to load settings for sessionname=hostname (to what PSCP/PLINK is just connecting)
-			   These settings usually doesn't exist.
-			   So for PSCP/PSFTP/PLINK, do not report error - so report error only for PuTTY
-			   assume only PuTTY project has PUTTY_WIN_RES_H defined
-			*/
-#ifdef PUTTY_WIN_RES_H	
-			errorShow("Unable to load file for reading", p);
+	    /* JK: PSCP/PSFTP/PLINK always try to load settings for sessionname=hostname (to what PSCP/PLINK is just connecting)
+	       These settings usually doesn't exist.
+	       So for PSCP/PSFTP/PLINK, do not report error - so report error only for PuTTY
+	       assume only PuTTY project has PUTTY_WIN_RES_H defined
+	    */
+#ifdef PUTTY_WIN_RES_H    
+	    errorShow("Unable to load file for reading", p);
 #endif
-			sfree(p);
-			return NULL;
-		}
+	    sfree(p);
+	    return NULL;
+	}
 
-		/* JK: succes -> load structure setPack from file */
-		fileSize = GetFileSize(hFile, NULL);
-		fileCont = snewn(fileSize+16, char);
+	/* JK: succes -> load structure setPack from file */
+	fileSize = GetFileSize(hFile, NULL);
+	fileCont = snewn(fileSize+16, char);
 
-		if (!ReadFile(hFile, fileCont, fileSize, &bytesRead, NULL)) {
-			errorShow("Unable to read session from file", p);
-			sfree(p);
-			return NULL;
-		}
-		sfree(p);
+	if (!ReadFile(hFile, fileCont, fileSize, &bytesRead, NULL)) {
+	    errorShow("Unable to read session from file", p);
+	    sfree(p);
+	    return NULL;
+	}
+	sfree(p);
 
-		st1 = snew( struct setItem );
-		sp->fromFile = 1;
-		sp->handle = st1;
-		
-		p = fileCont;
-		sp->fileBuf = fileCont; /* JK: remeber for memory freeing */
+	st1 = snew( struct setItem );
+	sp->fromFile = 1;
+	sp->handle = st1;
+	
+	p = fileCont;
+	sp->fileBuf = fileCont; /* JK: remeber for memory freeing */
 
-		/* JK: parse file in format:
-		 * key1\value1\
-		 * ...
-		*/
-		while (p < (fileCont+fileSize)) {
-			st1->key = p;
-			p = strchr(p, '\\');
-			if (!p) break;
-			*p = '\0';
-			++p;
-			st1->value = p;
-			p = strchr(p, '\\');
-			if (!p) break;
-			*p = '\0';
-			++p;
-			++p; /* for "\\\n" - human readable files */
+	/* JK: parse file in format:
+	 * key1\value1\
+	 * ...
+	*/
+	while (p < (fileCont+fileSize)) {
+	    st1->key = p;
+	    p = strchr(p, '\\');
+	    if (!p) break;
+	    *p = '\0';
+	    ++p;
+	    st1->value = p;
+	    p = strchr(p, '\\');
+	    if (!p) break;
+	    *p = '\0';
+	    ++p;
+	    ++p; /* for "\\\n" - human readable files */
 
-			st2 = snew( struct setItem );
-			st2->next = NULL;
-			st2->key = NULL;
-			st2->value = NULL;
+	    st2 = snew( struct setItem );
+	    st2->next = NULL;
+	    st2->key = NULL;
+	    st2->value = NULL;
 
-			st1->next = st2;
-			st1 = st2;
-		}
-		CloseHandle(hFile);
+	    st1->next = st2;
+	    st1 = st2;
+	}
+	CloseHandle(hFile);
+    }
+    else {
+	/* JK: session is in registry */
+	if (RegOpenKey(HKEY_CURRENT_USER, puttystr, &subkey1) != ERROR_SUCCESS) {
+	    sesskey = NULL;
 	}
 	else {
-		/* JK: session is in registry */
-		if (RegOpenKey(HKEY_CURRENT_USER, puttystr, &subkey1) != ERROR_SUCCESS) {
-			sesskey = NULL;
-		}
-		else {
-			if (RegOpenKey(subkey1, p, &sesskey) != ERROR_SUCCESS) {
-				sesskey = NULL;
-			}
-			RegCloseKey(subkey1);
-		}
-		sp->fromFile = 0;
-		sp->handle = sesskey;
-		sfree(p);
+	    if (RegOpenKey(subkey1, p, &sesskey) != ERROR_SUCCESS) {
+		sesskey = NULL;
+	    }
+	    RegCloseKey(subkey1);
 	}
+	sp->fromFile = 0;
+	sp->handle = sesskey;
+	sfree(p);
+    }
 
-	return sp;
+    return sp;
 }
 
 char *read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     DWORD type;
-	struct setItem *st;
-	char *p;
-	char *p2;
-	DWORD size = buflen;
+    struct setItem *st;
+    char *p;
+    char *p2;
+    DWORD size = buflen;
 
-	if (!handle) return NULL;	/* JK: new in 0.1.3 */
+    if (!handle) return NULL;    /* JK: new in 0.1.3 */
 
-	if (((struct setPack*) handle)->fromFile) {
-		
-		p = snewn(3 * strlen(key) + 1, char);
-		mungestr(key, p);
-		p2 = snewn(buflen, char);
+    if (((struct setPack*) handle)->fromFile) {
+	
+	p = snewn(3 * strlen(key) + 1, char);
+	mungestr(key, p);
+	p2 = snewn(buflen, char);
 
-		st = ((struct setPack*) handle)->handle;
-		while (st->key) {
-			if ( strcmp(st->key, p) == 0) {
-				unmungestr(st->value, p2, buflen);
+	st = ((struct setPack*) handle)->handle;
+	while (st->key) {
+	    if ( strcmp(st->key, p) == 0) {
+		unmungestr(st->value, p2, buflen);
 
-				/* JK: at first ExpandEnvironmentStrings */
-				if (0 == ExpandEnvironmentStrings(p2, buffer, buflen)) {
-					/* JK: failure -> revert back - but it usually won't work, so report error to user! */
-					errorShow("Unable to ExpandEnvironmentStrings for session path", p2);
-					strncpy(p2, buffer, strlen(p2));
-				}
-				return st->value;				
-			}
-			st = st->next;
+		/* JK: at first ExpandEnvironmentStrings */
+		if (0 == ExpandEnvironmentStrings(p2, buffer, buflen)) {
+		    /* JK: failure -> revert back - but it usually won't work, so report error to user! */
+		    errorShow("Unable to ExpandEnvironmentStrings for session path", p2);
+		    strncpy(p2, buffer, strlen(p2));
 		}
+		return st->value;		
+	    }
+	    st = st->next;
+	}
+    }
+    else {
+	handle = ((struct setPack*) handle)->handle;
+
+	if (!handle || RegQueryValueEx((HKEY) handle, key, 0, &type, buffer, &size) != ERROR_SUCCESS ||    type != REG_SZ) {
+	    return NULL;
 	}
 	else {
-		handle = ((struct setPack*) handle)->handle;
-
-		if (!handle || RegQueryValueEx((HKEY) handle, key, 0, &type, buffer, &size) != ERROR_SUCCESS ||	type != REG_SZ) {
-			return NULL;
-		}
-		else {
-			return buffer;
-		}
+	    return buffer;
 	}
-	/* JK: should not end here -> value not found in file */
-	return NULL;
+    }
+    /* JK: should not end here -> value not found in file */
+    return NULL;
 }
 
 int read_setting_i(void *handle, const char *key, int defvalue)
