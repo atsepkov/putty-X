@@ -1407,7 +1407,7 @@ void setup_config_box(struct controlbox *b, int midsession,
 		      HELPCTX(keyboard_homeend),
 		      dlg_stdradiobutton_handler,
 		      I(offsetof(Config, rxvt_homeend)),
-		      "Standard", I(0), "rxvt", I(1), NULL);
+		      "VT220", I(0), "rxvt", I(1), NULL);
     ctrl_radiobuttons(s, "The Function keys and keypad", 'f', 3,
 		      HELPCTX(keyboard_funkeys),
 		      dlg_stdradiobutton_handler,

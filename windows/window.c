@@ -4057,7 +4057,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
     /* If a key is pressed and AltGr is not active */
     if (key_down && (keystate[VK_RMENU] & 0x80) == 0 && !compose_state) {
 	/* Okay, prepare for most alts then ... */
-	if (left_alt && shift_state != 1 && !(wParam == VK_UP || wParam == VK_DOWN || wParam == VK_RIGHT || wParam == VK_LEFT))
+	if (left_alt && shift_state != 1 && !(wParam == VK_UP || wParam == VK_DOWN || wParam == VK_RIGHT || wParam == VK_LEFT || wParam == VK_HOME || wParam == VK_END))
 	    *p++ = '\033';
 
 	/* Lets see if it's a pattern we know all about ... */
@@ -4270,6 +4270,14 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    p += sprintf((char *) p, "\x1B[1;6D");
 	    return p - output;
 	}
+	if (wParam == VK_HOME && shift_state == 3) {	/* Ctrl-Shift-Home */
+	    p += sprintf((char *) p, "\x1B[1;6H");
+	    return p - output;
+	}
+	if (wParam == VK_END && shift_state == 3) {	/* Ctrl-Shift-End */
+	    p += sprintf((char *) p, "\x1B[1;6F");
+	    return p - output;
+	}
 	if (wParam == VK_TAB && shift_state == 1) {	/* Shift tab */
 	    *p++ = 0x1B;
 	    *p++ = '[';
@@ -4389,25 +4397,28 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    code = 34;
 	    break;
 	}
-	if ((shift_state&2) == 0) switch (wParam) {
-	  case VK_HOME:
-	    code = 1;
-	    break;
-	  case VK_INSERT:
-	    code = 2;
-	    break;
-	  case VK_DELETE:
-	    code = 3;
-	    break;
-	  case VK_END:
-	    code = 4;
-	    break;
-	  case VK_PRIOR:
-	    code = 5;
-	    break;
-	  case VK_NEXT:
-	    code = 6;
-	    break;
+	if ((shift_state&2) == 0) {
+	  switch (wParam) {
+	    case VK_INSERT:
+	      code = 2;
+	      break;
+	    case VK_DELETE:
+	      code = 3;
+	      break;
+	    case VK_PRIOR:
+	      code = 5;
+	      break;
+	    case VK_NEXT:
+	      code = 6;
+	      break;
+	  }
+	  if (!cfg.rxvt_homeend) {
+	    if (wParam == VK_HOME) {
+	      code = 1;
+	    } else if (wParam == VK_END) {
+	      code = 4;
+	    }
+	  }
 	}
 	/* Reorder edit keys to physical order */
 	if (cfg.funky_type == FUNKY_VT400 && code <= 6)
@@ -4475,10 +4486,6 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 		p += sprintf((char *) p, "\x1BO%c", code + 'P' - 11);
 	    return p - output;
 	}
-	if (cfg.rxvt_homeend && (code == 1 || code == 4)) {
-	    p += sprintf((char *) p, code == 1 ? "\x1B[H" : "\x1BOw");
-	    return p - output;
-	}
 	if (code) {
 	    p += sprintf((char *) p, "\x1B[%d~", code);
 	    return p - output;
@@ -4505,6 +4512,12 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 		break;
 	      case VK_CLEAR:
 		xkey = 'G';
+		break;
+	      case VK_HOME:
+		xkey = 'H';
+		break;
+	      case VK_END:
+		xkey = 'F';
 		break;
 	    }
 	    if (xkey) {
