@@ -1513,11 +1513,47 @@ void setup_config_box(struct controlbox *b, int midsession,
      */
     ctrl_settitle(b, "Terminal/Xresources",
 		  "Optional Xresources file to overwrite defaults");
-    s = ctrl_getset(b, "Terminal/Xresources", "settings", "Reuse settings file from X");
-    c = ctrl_editbox(s, "Relevant Class Names", NO_SHORTCUT, 100,
-		     HELPCTX(xresources_classes),
-		     dlg_stdeditbox_handler, I(offsetof(Config,xresources_apps)),
-		     I(sizeof(((Config *)0)->xresources_apps)));
+    if (!midsession) {
+	s = ctrl_getset(b, "Terminal/Xresources", "settings", "Reuse settings file from X");
+	c = ctrl_editbox(s, "Relevant Class Names", NO_SHORTCUT, 100,
+			 HELPCTX(xresources_classes),
+			 dlg_stdeditbox_handler, I(offsetof(Config,xresources_apps)),
+			 I(sizeof(((Config *)0)->xresources_apps)));
+
+	s = ctrl_getset(b, "Terminal/Xresources", "mapping",
+			"Custom Property Mapping");
+	ctrl_columns(s, 2, 80, 20);
+	// To avoid useless duplication, let's reuse environment data container for storing this map
+	ed = (struct environ_data *)
+	    ctrl_alloc(b, sizeof(struct environ_data));
+	ed->varbox = ctrl_editbox(s, "Original Name", NO_SHORTCUT, 60,
+				  HELPCTX(xresources_map),
+				  environ_handler, P(ed), P(NULL));
+	ed->varbox->generic.column = 0;
+	ed->valbox = ctrl_editbox(s, "Putty Name", NO_SHORTCUT, 60,
+				  HELPCTX(xresources_map),
+				  environ_handler, P(ed), P(NULL));
+	ed->valbox->generic.column = 0;
+	ed->addbutton = ctrl_pushbutton(s, "Add", 'd',
+					HELPCTX(xresources_map),
+					environ_handler, P(ed));
+	ed->addbutton->generic.column = 1;
+	ed->rembutton = ctrl_pushbutton(s, "Remove", 'r',
+					HELPCTX(xresources_map),
+					environ_handler, P(ed));
+	ed->rembutton->generic.column = 1;
+	ctrl_columns(s, 1, 100);
+	ctrl_text(s, "Translation Table (Application Name -> Putty Name)",
+		  HELPCTX(xresources_map));
+	ed->listbox = ctrl_listbox(s, NULL, NO_SHORTCUT,
+				   HELPCTX(xresources_map),
+				   environ_handler, P(ed));
+	ed->listbox->listbox.height = 12;
+	ed->listbox->listbox.ncols = 2;
+	ed->listbox->listbox.percentages = snewn(2, int);
+	ed->listbox->listbox.percentages[0] = 50;
+	ed->listbox->listbox.percentages[1] = 50;
+    }
 
     /*
      * The Window panel.
