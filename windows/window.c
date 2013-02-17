@@ -4485,15 +4485,15 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    } else {
 		char * prefix;
 		if (shift_state == 1) {
-		    prefix = "[1;2";
+		    prefix = "1;2";
 		} else if (shift_state == 2) {
-		    prefix = "[1;5";
+		    prefix = "1;5";
 		} else if (shift_state == 3) {
-		    prefix = "[1;6";
+		    prefix = "1;6";
 		} else {
-		    prefix = "O";
+		    prefix = "";
 		}
-		p += sprintf((char *) p, "\x1B%s%c", prefix, code + 'P' - 11);
+		p += sprintf((char *) p, "\x1BO%s%c", prefix, code + 'P' - 11);
 	    }
 	    return p - output;
 	}
