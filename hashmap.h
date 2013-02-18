@@ -49,7 +49,7 @@ hashmap *Hashmap();
 /*
  * Destroy hash table
  */
-void hashmap_free(hashmap *h)
+void hashmap_free(hashmap *h);
 
 /*
  * Return the bucket offset for a given key as determined by the hashing

@@ -42,11 +42,13 @@
 
 #define NUM_BUCKETS (256)
 
+typedef struct hashmap_entry hashmap_entry;
+
 struct hashmap_entry {
     char *key;
     char *value;
     unsigned int has_entry;
-    hashmap_element *next; // in case of collision
+    hashmap_entry *next; // in case of collision
 };
 
 struct hashmap {
@@ -80,7 +82,7 @@ unsigned int hash(hashmap *h, char *key)
 unsigned int hashmap_add(hashmap *h, char *key, char *value)
 {
     unsigned int index = hash(h, key);
-    hashmap_element *cell = (hashmap_element*)(h->data + index);
+    hashmap_entry *cell = (hashmap_entry*)(h->data + index);
     /*
      * We expect duplicates to only occur when a setting is specified in Xresources
      * file in addition to normal config, so overwriting them inside our hash table
@@ -92,7 +94,7 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
 	    cell = cell->next;
 	}
 	if (key != cell->key) {
-	    cell->next = snew(hashmap_element);
+	    cell->next = snew(hashmap_entry);
 	    cell = cell->next;
 	}
     } else {
@@ -107,7 +109,7 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
 char *hashmap_get(hashmap *h, char *key)
 {
     unsigned int index = hash(h, key);
-    hashmap_element *cell = (hashmap_element*)(h->data + index);
+    hashmap_entry *cell = (hashmap_entry*)(h->data + index);
     while (cell->next != NULL && cell->key != key) {
         cell = cell->next;
     }
