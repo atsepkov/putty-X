@@ -36,6 +36,7 @@
  * future to allow any data type by using 'void *' instead of 'char *'.
  */
 
+#include <assert.h>
 #include "hashmap.h"
 #include "ssh.h"
 
@@ -58,9 +59,16 @@ hashmap *Hashmap()
 {
     hashmap *h = snew(hashmap);
     h->data = snewn(NUM_BUCKETS, hashmap_entry);
+    memset(h->data, '\0', sizeof(h->data));
     h->num_entries = 0;
     h->num_buckets = NUM_BUCKETS;
     return h;
+}
+
+void hashmap_free(hashmap *h)
+{
+    sfree(h->data);
+    sfree(h);
 }
 
 unsigned int hash(hashmap *h, char *key)
@@ -79,20 +87,21 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
      * insertion logic directly will make the logic easier for us later.
      */
     if (cell->has_entry == 1 && key != cell->key) {
+	// resolve collisions through separate chaining via linked lists (with list heads)
 	while (cell->next != NULL && key != cell->key) {
-	    // resolve collisions through separate chaining via linked lists (with list heads)
 	    cell = cell->next;
 	}
-	hashmap_element *new_cell;
 	if (key != cell->key) {
-	    cell->next = new_cell;
-	    cell = new_cell;
+	    cell->next = snew(hashmap_element);
+	    cell = cell->next;
 	}
     } else {
         cell->has_entry = 1;
     }
+    
     cell->key = key;
     cell->value = value;
+    cell->next = NULL;
 }
 
 char *hashmap_get(hashmap *h, char *key)
@@ -102,9 +111,7 @@ char *hashmap_get(hashmap *h, char *key)
     while (cell->next != NULL && cell->key != key) {
         cell = cell->next;
     }
-    if (cell->key == key) {
-        return cell->value;
-    } else {
-        return '';
-    }
+    
+    assert(cell->key == key);
+    return cell->value;
 }

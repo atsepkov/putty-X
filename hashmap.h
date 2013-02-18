@@ -47,6 +47,11 @@ typedef struct hashmap hashmap;
 hashmap *Hashmap();
 
 /*
+ * Destroy hash table
+ */
+void hashmap_free(hashmap *h)
+
+/*
  * Return the bucket offset for a given key as determined by the hashing
  * algorithm
  */
@@ -67,7 +72,9 @@ char *hashmap_get(hashmap *h, char *key);
  * time and will not need to be dynamically modified. For the same reason I will
  * not bother with resize logic either, I don't forsee people having hundreds of
  * entries in their config. Ideally, however, I should resize + rehash when the
- * hash becomes over 50% full.
+ * hash becomes over 50% full. Since I use linked lists for collision resolution,
+ * the hash should degrade more gracefully than a typical one when reaching high
+ * load factor even without resize mechanism.
  */
 
 #endif			/* HASHMAP_H */
