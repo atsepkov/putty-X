@@ -49,55 +49,55 @@ static char jumplistpath[2 * MAX_PATH] = "\0";
 
 /* JK: structures for handling settings in memory as linked list */
 struct setItem {
-	char* key;
-	char* value;
-	struct setItem* next;
+    char* key;
+    char* value;
+    struct setItem* next;
 };
 struct setPack {
-	unsigned int fromFile;
-	void* handle;
-	char* fileBuf;
+    unsigned int fromFile;
+    void* handle;
+    char* fileBuf;
 };
 
 /* JK: my generic function for simplyfing error reporting */
 DWORD errorShow(const char* pcErrText, const char* pcErrParam) {
 
-	HWND hwRodic;
-	DWORD erChyba;
-	char pcBuf[16];
-	char* pcHlaska;
-	if (pcErrParam != NULL)	{
-		pcHlaska = snewn(strlen(pcErrParam) + strlen(pcErrText) + 31, char);
-	} else {
-		pcHlaska = snewn(strlen(pcErrText) + 31, char);
-	}
+    HWND hwRodic;
+    DWORD erChyba;
+    char pcBuf[16];
+    char* pcHlaska;
+    if (pcErrParam != NULL)    {
+	pcHlaska = snewn(strlen(pcErrParam) + strlen(pcErrText) + 31, char);
+    } else {
+	pcHlaska = snewn(strlen(pcErrText) + 31, char);
+    }
 
-	
-	erChyba = GetLastError();		
-	ltoa(erChyba, pcBuf, 10);
+    
+    erChyba = GetLastError();	
+    ltoa(erChyba, pcBuf, 10);
 
-	strcpy(pcHlaska, "Error: ");
-	strcat(pcHlaska, pcErrText);
-	strcat(pcHlaska, "\n");	
+    strcpy(pcHlaska, "Error: ");
+    strcat(pcHlaska, pcErrText);
+    strcat(pcHlaska, "\n");    
 
-	if (pcErrParam) {
-		strcat(pcHlaska, pcErrParam);
-		strcat(pcHlaska, "\n");
-	}
+    if (pcErrParam) {
+	strcat(pcHlaska, pcErrParam);
+	strcat(pcHlaska, "\n");
+    }
     strcat(pcHlaska, "Error code: ");
-	strcat(pcHlaska, pcBuf);
+    strcat(pcHlaska, pcBuf);
 
     /* JK: get parent-window and show */
     hwRodic = GetActiveWindow();
     if (hwRodic != NULL) { hwRodic = GetLastActivePopup(hwRodic);}
   
-	if (MessageBox(hwRodic, pcHlaska, "Error", MB_OK|MB_APPLMODAL|MB_ICONEXCLAMATION) == 0) {
-        /* JK: this is really bad -> just ignore */
-        return 0;
+    if (MessageBox(hwRodic, pcHlaska, "Error", MB_OK|MB_APPLMODAL|MB_ICONEXCLAMATION) == 0) {
+	/* JK: this is really bad -> just ignore */
+	return 0;
     }
 
-	sfree(pcHlaska);
-	return erChyba;
+    sfree(pcHlaska);
+    return erChyba;
 };
 
 static void mungestr(const char *in, char *out)
@@ -105,16 +105,16 @@ static void mungestr(const char *in, char *out)
     int candot = 0;
 
     while (*in) {
-	if (*in == ' ' || *in == '\\' || *in == '*' || *in == '?' ||
-	    *in == '%' || *in < ' ' || *in > '~' || (*in == '.'
-						     && !candot)) {
-	    *out++ = '%';
-	    *out++ = hex[((unsigned char) *in) >> 4];
-	    *out++ = hex[((unsigned char) *in) & 15];
-	} else
-	    *out++ = *in;
-	in++;
-	candot = 1;
+    if (*in == ' ' || *in == '\\' || *in == '*' || *in == '?' ||
+	*in == '%' || *in < ' ' || *in > '~' || (*in == '.'
+			     && !candot)) {
+	*out++ = '%';
+	*out++ = hex[((unsigned char) *in) >> 4];
+	*out++ = hex[((unsigned char) *in) & 15];
+    } else
+	*out++ = *in;
+    in++;
+    candot = 1;
     }
     *out = '\0';
     return;
@@ -123,23 +123,23 @@ static void mungestr(const char *in, char *out)
 static void unmungestr(const char *in, char *out, int outlen)
 {
     while (*in) {
-	if (*in == '%' && in[1] && in[2]) {
-	    int i, j;
+    if (*in == '%' && in[1] && in[2]) {
+	int i, j;
 
-	    i = in[1] - '0';
-	    i -= (i > 9 ? 7 : 0);
-	    j = in[2] - '0';
-	    j -= (j > 9 ? 7 : 0);
+	i = in[1] - '0';
+	i -= (i > 9 ? 7 : 0);
+	j = in[2] - '0';
+	j -= (j > 9 ? 7 : 0);
 
-	    *out++ = (i << 4) + j;
-	    if (!--outlen)
-		return;
-	    in += 3;
-	} else {
-	    *out++ = *in++;
-	    if (!--outlen)
-		return;
-	}
+	*out++ = (i << 4) + j;
+	if (!--outlen)
+	return;
+	in += 3;
+    } else {
+	*out++ = *in++;
+	if (!--outlen)
+	return;
+    }
     }
     *out = '\0';
     return;
@@ -148,14 +148,14 @@ static void unmungestr(const char *in, char *out, int outlen)
 /* JK: pack string for use as filename - pack < > : " / \ | */
 static void packstr(const char *in, char *out) {
     while (*in) {
-		if (*in == '<' || *in == '>' || *in == ':' || *in == '"' ||
-	    *in == '/' || *in == '|') {
-	    *out++ = '%';
-	    *out++ = hex[((unsigned char) *in) >> 4];
-	    *out++ = hex[((unsigned char) *in) & 15];
-	} else
-	    *out++ = *in;
-	in++;
+	if (*in == '<' || *in == '>' || *in == ':' || *in == '"' ||
+	*in == '/' || *in == '|') {
+	*out++ = '%';
+	*out++ = hex[((unsigned char) *in) >> 4];
+	*out++ = hex[((unsigned char) *in) & 15];
+    } else
+	*out++ = *in;
+    in++;
     }
     *out = '\0';
     return;
@@ -167,90 +167,90 @@ static void packstr(const char *in, char *out) {
 int createPath(char* dir) {
     char *p;
 
-	p = strrchr(dir, '\\');
+    p = strrchr(dir, '\\');
 
-	if (p == NULL) {
-		/* what if it already exists */
-		if (!SetCurrentDirectory(dir)) {
-			CreateDirectory(dir, NULL);
-			return SetCurrentDirectory(dir);
-		}
-		return 1;
-	}
-	
-	*p = '\0';
-	createPath(dir);
-	*p = '\\';
-	++p;
-
+    if (p == NULL) {
 	/* what if it already exists */
 	if (!SetCurrentDirectory(dir)) {
-		CreateDirectory(p, NULL);
-		return SetCurrentDirectory(p);
+	    CreateDirectory(dir, NULL);
+	    return SetCurrentDirectory(dir);
 	}
 	return 1;
+    }
+    
+    *p = '\0';
+    createPath(dir);
+    *p = '\\';
+    ++p;
+
+    /* what if it already exists */
+    if (!SetCurrentDirectory(dir)) {
+	CreateDirectory(p, NULL);
+	return SetCurrentDirectory(p);
+    }
+    return 1;
 }
 
 /*
  * JK: join path pcMain.pcSuf solving extra cases to pcDest
  * expecting - pcMain as path from WinAPI ::GetCurrentDirectory()/GetModuleFileName()
- *           - pcSuf as user input path from config (at least MAX_PATH long)
+ *	   - pcSuf as user input path from config (at least MAX_PATH long)
 */
 char* joinPath(char* pcDest, char* pcMain, char* pcSuf) {
 
-	char* pcBuf = snewn(MAX_PATH+1, char);
+    char* pcBuf = snewn(MAX_PATH+1, char);
 
-	/* at first ExpandEnvironmentStrings */
-	if (0 == ExpandEnvironmentStrings(pcSuf, pcBuf, MAX_PATH)) {
-		/* JK: failure -> revert back - but it usually won't work, so report error to user! */
-		errorShow("Unable to ExpandEnvironmentStrings for session path", pcSuf);
-		strncpy(pcBuf, pcSuf, strlen(pcSuf));
-	}
-	/* now ExpandEnvironmentStringsForUser - only on win2000Pro and above */
-	/* It's much more tricky than I've expected, so it's ToDo */
-	/*
-	static HMODULE userenv_module = NULL;
-	typedef BOOL (WINAPI *p_ExpandESforUser_t) (HANDLE, LPCTSTR, LPTSTR, DWORD);
-	static p_ExpandESforUser_t p_ExpandESforUser = NULL;
+    /* at first ExpandEnvironmentStrings */
+    if (0 == ExpandEnvironmentStrings(pcSuf, pcBuf, MAX_PATH)) {
+	/* JK: failure -> revert back - but it usually won't work, so report error to user! */
+	errorShow("Unable to ExpandEnvironmentStrings for session path", pcSuf);
+	strncpy(pcBuf, pcSuf, strlen(pcSuf));
+    }
+    /* now ExpandEnvironmentStringsForUser - only on win2000Pro and above */
+    /* It's much more tricky than I've expected, so it's ToDo */
+    /*
+    static HMODULE userenv_module = NULL;
+    typedef BOOL (WINAPI *p_ExpandESforUser_t) (HANDLE, LPCTSTR, LPTSTR, DWORD);
+    static p_ExpandESforUser_t p_ExpandESforUser = NULL;
+    
+    HMODULE userenv_module = LoadLibrary("USERENV.DLL");
+
+    if (userenv_module) {
+	p_ExpandESforUser = (p_ExpandESforUser_t) GetProcAddress(shell32_module, "ExpandEnvironmentStringsForUserA");
 	
-	HMODULE userenv_module = LoadLibrary("USERENV.DLL");
+	if (p_ExpandESforUser) {
 
-	if (userenv_module) {
-	    p_ExpandESforUser = (p_ExpandESforUser_t) GetProcAddress(shell32_module, "ExpandEnvironmentStringsForUserA");
-		
-		if (p_ExpandESforUser) {
+	    TOKEN_IMPERSONATE
 
-			TOKEN_IMPERSONATE
+	    if (0 == (p_ExpandESforUser(NULL, pcSuf, pcBuf,    MAX_PATH))) {
+		/* JK: failure -> revert back - but it ussualy won't work, so report error to user! *//*
+		errorShow("Unable to ExpandEnvironmentStringsForUser for session path", pcBuf);
+		strncpy(pcSuf, pcBuf, strlen(pcSuf));
+	    }
+	}
+    }*/
 
-			if (0 == (p_ExpandESforUser(NULL, pcSuf, pcBuf,	MAX_PATH))) {
-	    		/* JK: failure -> revert back - but it ussualy won't work, so report error to user! *//*
-				errorShow("Unable to ExpandEnvironmentStringsForUser for session path", pcBuf);
-				strncpy(pcSuf, pcBuf, strlen(pcSuf));
-			}
-		}
-	}*/
+    /* expand done, result in pcBuf */
 
-	/* expand done, result in pcBuf */
-
-	if ((*pcBuf == '/') || (*pcBuf == '\\')) {
-		/* everything ok */
-		strcpy(pcDest, pcMain);
-		strcat(pcDest, pcBuf);
+    if ((*pcBuf == '/') || (*pcBuf == '\\')) {
+	/* everything ok */
+	strcpy(pcDest, pcMain);
+	strcat(pcDest, pcBuf);
+    }
+    else {
+	if (*(pcBuf+1) == ':') {
+	    /* absolute path */
+	    strcpy(pcDest, pcBuf);
 	}
 	else {
-		if (*(pcBuf+1) == ':') {
-			/* absolute path */
-			strcpy(pcDest, pcBuf);
-		}
-		else {
-			/* some weird relative path - add '\' */
-			strcpy(pcDest, pcMain);
-			strcat(pcDest, "\\");
-			strcat(pcDest, pcBuf);
-		}
+	    /* some weird relative path - add '\' */
+	    strcpy(pcDest, pcMain);
+	    strcat(pcDest, "\\");
+	    strcat(pcDest, pcBuf);
 	}
-	sfree(pcBuf);
-	return pcDest;
+    }
+    sfree(pcBuf);
+    return pcDest;
 }
 
 /*
@@ -259,303 +259,303 @@ char* joinPath(char* pcDest, char* pcMain, char* pcSuf) {
 */
 int loadPath() {
 
-	char *fileCont = NULL;
-	DWORD fileSize;
-	DWORD bytesRead;
-	char *p = NULL;
-	char *p2 = NULL;
-	HANDLE hFile;
-	int jumplistdefined = 0;
+    char *fileCont = NULL;
+    DWORD fileSize;
+    DWORD bytesRead;
+    char *p = NULL;
+    char *p2 = NULL;
+    HANDLE hFile;
+    int jumplistdefined = 0;
 
-	char* puttypath = snewn( (MAX_PATH*2), char);
+    char* puttypath = snewn( (MAX_PATH*2), char);
 
-	/* JK:  save path/curdir */
-	GetCurrentDirectory( (MAX_PATH*2), oldpath);
+    /* JK:  save path/curdir */
+    GetCurrentDirectory( (MAX_PATH*2), oldpath);
 
-	
-	/* JK: try curdir for putty.conf first */
-	hFile = CreateFile("putty.conf",GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+    
+    /* JK: try curdir for putty.conf first */
+    hFile = CreateFile("putty.conf",GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 
-	if (hFile != INVALID_HANDLE_VALUE)
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+	/* JK: there is a putty.conf in curdir - use it and use curdir as puttypath */
+	GetCurrentDirectory( (MAX_PATH*2), puttypath);
+	CloseHandle(hFile);
+    } else {
+	/* JK: get where putty.exe is */
+	if (GetModuleFileName(NULL, puttypath, (MAX_PATH*2)) != 0)
 	{
-		/* JK: there is a putty.conf in curdir - use it and use curdir as puttypath */
-		GetCurrentDirectory( (MAX_PATH*2), puttypath);
-		CloseHandle(hFile);
-	} else {
-		/* JK: get where putty.exe is */
-		if (GetModuleFileName(NULL, puttypath, (MAX_PATH*2)) != 0)
-		{
-			p = strrchr(puttypath, '\\');
-			if (p)
-			{
-				*p = '\0';
-			}
-			SetCurrentDirectory(puttypath);
-		}
-		else GetCurrentDirectory( (MAX_PATH*2), puttypath);
+	    p = strrchr(puttypath, '\\');
+	    if (p)
+	    {
+		*p = '\0';
+	    }
+	    SetCurrentDirectory(puttypath);
 	}
+	else GetCurrentDirectory( (MAX_PATH*2), puttypath);
+    }
 
-	/* JK: set default values - if there is a config file, it will be overwitten */
-	strcpy(sesspath, puttypath);
-	strcat(sesspath, "\\sessions");
-	strcpy(sshkpath, puttypath);
-	strcat(sshkpath, "\\sshhostkeys");
-	strcpy(seedpath, puttypath);
-	strcat(seedpath, "\\putty.rnd");
-	strcpy(jumplistpath, puttypath);
-	strcat(jumplistpath, "\\jumplist.txt");
+    /* JK: set default values - if there is a config file, it will be overwitten */
+    strcpy(sesspath, puttypath);
+    strcat(sesspath, "\\sessions");
+    strcpy(sshkpath, puttypath);
+    strcat(sshkpath, "\\sshhostkeys");
+    strcpy(seedpath, puttypath);
+    strcat(seedpath, "\\putty.rnd");
+    strcpy(jumplistpath, puttypath);
+    strcat(jumplistpath, "\\jumplist.txt");
 
-	hFile = CreateFile("putty.conf",GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+    hFile = CreateFile("putty.conf",GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 
-	/* JK: now we can pre-clean-up */
-	SetCurrentDirectory(oldpath);
+    /* JK: now we can pre-clean-up */
+    SetCurrentDirectory(oldpath);
 
-	if (hFile != INVALID_HANDLE_VALUE) {
-		fileSize = GetFileSize(hFile, NULL);
-		fileCont = snewn(fileSize+16, char);
+    if (hFile != INVALID_HANDLE_VALUE) {
+	fileSize = GetFileSize(hFile, NULL);
+	fileCont = snewn(fileSize+16, char);
 
-		if (!ReadFile(hFile, fileCont, fileSize, &bytesRead, NULL))
-		{
-			errorShow("Unable to read configuration file, falling back to defaults", NULL);
-			/* JK: default values are already there and clean-up at end */
-		}
-		else {
-			/* JK: parse conf file to path variables */
-			*(fileCont+fileSize+1) = '\0';
-			*(fileCont+fileSize) = '\n';
-			p = fileCont;
-			while (p) {
-				if (*p == ';') {	/* JK: comment -> skip line */
-					p = strchr(p, '\n');
-					++p;
-					continue;
-				}
-				p2 = strchr(p, '=');
-				if (!p2) break;
-				*p2 = '\0';
-				++p2;
-
-				if (!strcmp(p, "sessions")) {
-					p = strchr(p2, '\n');
-					*p = '\0';
-					joinPath(sesspath, puttypath, p2);
-					p2 = sesspath+strlen(sesspath)-1;
-					while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
-					*(p2+1) = '\0';
-				}
-				else if (!strcmp(p, "sshhostkeys")) {
-					p = strchr(p2, '\n');
-					*p = '\0';
-					joinPath(sshkpath, puttypath, p2);
-					p2 = sshkpath+strlen(sshkpath)-1;
-					while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
-					*(p2+1) = '\0';
-				}
-				else if (!strcmp(p, "seedfile")) {
-					p = strchr(p2, '\n');
-					*p = '\0';
-					joinPath(seedpath, puttypath, p2);			
-					p2 = seedpath+strlen(seedpath)-1;
-					while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
-					*(p2+1) = '\0';
-				}
-				else if (!strcmp(p, "sessionsuffix")) {
-					p = strchr(p2, '\n');
-					*p = '\0';
-					strcpy(sessionsuffix, p2);
-					p2 = sessionsuffix+strlen(sessionsuffix)-1;
-					while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
-					*(p2+1) = '\0';
-				}
-				else if (!strcmp(p, "keysuffix")) {
-					p = strchr(p2, '\n');
-					*p = '\0';
-					strcpy(keysuffix, p2);
-					p2 = keysuffix+strlen(keysuffix)-1;
-					while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
-					*(p2+1) = '\0';
-				}
-				else if (!strcmp(p, "jumplist")) {
-					p = strchr(p2, '\n');
-					*p = '\0';
-					joinPath(jumplistpath, puttypath, p2);			
-					p2 = jumplistpath+strlen(jumplistpath)-1;
-					while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
-					*(p2+1) = '\0';
-					jumplistdefined = 1;
-				}
-				++p;
-			}
-			
-			if (jumplistdefined == 0) { strcpy(jumplistpath, ":"); }
-		}
-		CloseHandle(hFile);
-		sfree(fileCont);
+	if (!ReadFile(hFile, fileCont, fileSize, &bytesRead, NULL))
+	{
+	    errorShow("Unable to read configuration file, falling back to defaults", NULL);
+	    /* JK: default values are already there and clean-up at end */
 	}
-	else { /* INVALID_HANDLE
-		 * JK: unable to read conf file - probably doesn't exists
-		 * we won't create one, user wants putty light, just fall back to defaults
-		 * and defaults are already there */
-		strcpy(jumplistpath, ":");
-	}
+	else {
+	    /* JK: parse conf file to path variables */
+	    *(fileCont+fileSize+1) = '\0';
+	    *(fileCont+fileSize) = '\n';
+	    p = fileCont;
+	    while (p) {
+		if (*p == ';') {    /* JK: comment -> skip line */
+		    p = strchr(p, '\n');
+		    ++p;
+		    continue;
+		}
+		p2 = strchr(p, '=');
+		if (!p2) break;
+		*p2 = '\0';
+		++p2;
 
-	sfree(puttypath);
-	return 1;
+		if (!strcmp(p, "sessions")) {
+		    p = strchr(p2, '\n');
+		    *p = '\0';
+		    joinPath(sesspath, puttypath, p2);
+		    p2 = sesspath+strlen(sesspath)-1;
+		    while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
+		    *(p2+1) = '\0';
+		}
+		else if (!strcmp(p, "sshhostkeys")) {
+		    p = strchr(p2, '\n');
+		    *p = '\0';
+		    joinPath(sshkpath, puttypath, p2);
+		    p2 = sshkpath+strlen(sshkpath)-1;
+		    while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
+		    *(p2+1) = '\0';
+		}
+		else if (!strcmp(p, "seedfile")) {
+		    p = strchr(p2, '\n');
+		    *p = '\0';
+		    joinPath(seedpath, puttypath, p2);	    
+		    p2 = seedpath+strlen(seedpath)-1;
+		    while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
+		    *(p2+1) = '\0';
+		}
+		else if (!strcmp(p, "sessionsuffix")) {
+		    p = strchr(p2, '\n');
+		    *p = '\0';
+		    strcpy(sessionsuffix, p2);
+		    p2 = sessionsuffix+strlen(sessionsuffix)-1;
+		    while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
+		    *(p2+1) = '\0';
+		}
+		else if (!strcmp(p, "keysuffix")) {
+		    p = strchr(p2, '\n');
+		    *p = '\0';
+		    strcpy(keysuffix, p2);
+		    p2 = keysuffix+strlen(keysuffix)-1;
+		    while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
+		    *(p2+1) = '\0';
+		}
+		else if (!strcmp(p, "jumplist")) {
+		    p = strchr(p2, '\n');
+		    *p = '\0';
+		    joinPath(jumplistpath, puttypath, p2);	    
+		    p2 = jumplistpath+strlen(jumplistpath)-1;
+		    while ((*p2 == ' ')||(*p2 == '\n')||(*p2 == '\r')||(*p2 == '\t')) --p2;
+		    *(p2+1) = '\0';
+		    jumplistdefined = 1;
+		}
+		++p;
+	    }
+	    
+	    if (jumplistdefined == 0) { strcpy(jumplistpath, ":"); }
+	}
+	CloseHandle(hFile);
+	sfree(fileCont);
+    }
+    else { /* INVALID_HANDLE
+	 * JK: unable to read conf file - probably doesn't exists
+	 * we won't create one, user wants putty light, just fall back to defaults
+	 * and defaults are already there */
+	strcpy(jumplistpath, ":");
+    }
+
+    sfree(puttypath);
+    return 1;
 }
 
 void *open_settings_w(const char *sessionname, char **errmsg)
 {
     char *p;
-	struct setPack* sp;
+    struct setPack* sp;
     *errmsg = NULL;
 
-	if (!sessionname || !*sessionname) {
-		sessionname = "Default Settings";
-	}
+    if (!sessionname || !*sessionname) {
+	sessionname = "Default Settings";
+    }
 
-	/* JK: if sessionname contains [registry] -> cut it off */
-	if ( *(sessionname+strlen(sessionname)-1) == ']') {
-		p = strrchr(sessionname, '[');
-		*(p-1) = '\0';
-	}
+    /* JK: if sessionname contains [registry] -> cut it off */
+    if ( *(sessionname+strlen(sessionname)-1) == ']') {
+	p = strrchr(sessionname, '[');
+	*(p-1) = '\0';
+    }
 
     p = snewn(3 * strlen(sessionname) + 1, char);
     mungestr(sessionname, p);
 
-	sp = snew( struct setPack );
-	sp->fromFile = 0;
-	sp->handle = NULL;
+    sp = snew( struct setPack );
+    sp->fromFile = 0;
+    sp->handle = NULL;
 
-	/* JK: secure pack for filename */
-	sp->fileBuf = snewn(3 * strlen(p) + 1 + 16, char);
+    /* JK: secure pack for filename */
+    sp->fileBuf = snewn(3 * strlen(p) + 1 + 16, char);
     packstr(p, sp->fileBuf);
-	strcat(sp->fileBuf, sessionsuffix);
-	sfree(p);
+    strcat(sp->fileBuf, sessionsuffix);
+    sfree(p);
 
-	return sp;
+    return sp;
 }
 
 void write_setting_s(void *handle, const char *key, const char *value)
 {
-	struct setItem *st;
+    struct setItem *st;
 
-	if (handle) {
-		/* JK: counting max lenght of keys/values */
-		((struct setPack*) handle)->fromFile = max(((struct setPack*) handle)->fromFile, strlen(key)+1);
-		((struct setPack*) handle)->fromFile = max(((struct setPack*) handle)->fromFile, strlen(value)+1);
+    if (handle) {
+	/* JK: counting max lenght of keys/values */
+	((struct setPack*) handle)->fromFile = max(((struct setPack*) handle)->fromFile, strlen(key)+1);
+	((struct setPack*) handle)->fromFile = max(((struct setPack*) handle)->fromFile, strlen(value)+1);
 
-		st = ((struct setPack*) handle)->handle;
-		while (st) {
-			if ( strcmp(st->key, key) == 0) {
-				/* this key already set -> reset */
-				sfree(st->value);
-				st->value = snewn( strlen(value)+1, char);
-				strcpy(st->value, value);
-				return;
-			}
-			st = st->next;
-		}
-		/* JK: key not found -> add to begin */
-		st = snew( struct setItem );
-		st->key = snewn( strlen(key)+1, char);
-		strcpy(st->key, key);
+	st = ((struct setPack*) handle)->handle;
+	while (st) {
+	    if ( strcmp(st->key, key) == 0) {
+		/* this key already set -> reset */
+		sfree(st->value);
 		st->value = snewn( strlen(value)+1, char);
 		strcpy(st->value, value);
-		st->next = ((struct setPack*) handle)->handle;
-		((struct setPack*) handle)->handle = st;
+		return;
+	    }
+	    st = st->next;
 	}
+	/* JK: key not found -> add to begin */
+	st = snew( struct setItem );
+	st->key = snewn( strlen(key)+1, char);
+	strcpy(st->key, key);
+	st->value = snewn( strlen(value)+1, char);
+	strcpy(st->value, value);
+	st->next = ((struct setPack*) handle)->handle;
+	((struct setPack*) handle)->handle = st;
+    }
 }
 
 void write_setting_i(void *handle, const char *key, int value)
 {
-	struct setItem *st;
+    struct setItem *st;
 
-	if (handle) {
-		/* JK: counting max lenght of keys/values */
-		((struct setPack*) handle)->fromFile = max(((struct setPack*) handle)->fromFile, strlen(key)+1);
+    if (handle) {
+	/* JK: counting max lenght of keys/values */
+	((struct setPack*) handle)->fromFile = max(((struct setPack*) handle)->fromFile, strlen(key)+1);
 
-		st = ((struct setPack*) handle)->handle;
-		while (st) {
-			if ( strcmp(st->key, key) == 0) {
-				/* this key already set -> reset */
-				sfree(st->value);
-				st->value = snewn(16, char);
-				itoa(value, st->value, 10);
-				return;
-			}
-			st = st->next;
-		}
-		/* JK: key not found -> add to begin */
-		st = snew( struct setItem );
-		st->key = snewn( strlen(key)+1, char);
-		strcpy(st->key, key);
+	st = ((struct setPack*) handle)->handle;
+	while (st) {
+	    if ( strcmp(st->key, key) == 0) {
+		/* this key already set -> reset */
+		sfree(st->value);
 		st->value = snewn(16, char);
 		itoa(value, st->value, 10);
-		st->next = ((struct setPack*) handle)->handle;
-		((struct setPack*) handle)->handle = st;
+		return;
+	    }
+	    st = st->next;
 	}
+	/* JK: key not found -> add to begin */
+	st = snew( struct setItem );
+	st->key = snewn( strlen(key)+1, char);
+	strcpy(st->key, key);
+	st->value = snewn(16, char);
+	itoa(value, st->value, 10);
+	st->next = ((struct setPack*) handle)->handle;
+	((struct setPack*) handle)->handle = st;
+    }
 }
 
 void close_settings_w(void *handle)
 {
-	HANDLE hFile;
-	DWORD written;
-	WIN32_FIND_DATA FindFile;
-	char *p;
-	struct setItem *st1,*st2;
-	int writeok;
+    HANDLE hFile;
+    DWORD written;
+    WIN32_FIND_DATA FindFile;
+    char *p;
+    struct setItem *st1,*st2;
+    int writeok;
 
-	if (!handle) return;
+    if (!handle) return;
 
-	/* JK: we will write to disk now - open file, filename stored in handle already packed */
-	if ((hFile = FindFirstFile(sesspath, &FindFile)) == INVALID_HANDLE_VALUE) {
-		if (!createPath(sesspath)) {
-			errorShow("Unable to create directory for storing sessions", sesspath);
-			return;
-		}
+    /* JK: we will write to disk now - open file, filename stored in handle already packed */
+    if ((hFile = FindFirstFile(sesspath, &FindFile)) == INVALID_HANDLE_VALUE) {
+	if (!createPath(sesspath)) {
+	    errorShow("Unable to create directory for storing sessions", sesspath);
+	    return;
 	}
-	FindClose(hFile);
-	GetCurrentDirectory( (MAX_PATH*2), oldpath);
-	SetCurrentDirectory(sesspath);
+    }
+    FindClose(hFile);
+    GetCurrentDirectory( (MAX_PATH*2), oldpath);
+    SetCurrentDirectory(sesspath);
 
-	hFile = CreateFile( ((struct setPack*) handle)->fileBuf, GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
-	if (hFile == INVALID_HANDLE_VALUE) {
-		errorShow("Unable to open file for writing", ((struct setPack*) handle)->fileBuf );
-		return;
-	}
+    hFile = CreateFile( ((struct setPack*) handle)->fileBuf, GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+	errorShow("Unable to open file for writing", ((struct setPack*) handle)->fileBuf );
+	return;
+    }
 
-	/* JK: allocate enough memory for all keys/values */
-	p = snewn( max( 3* ((struct setPack*) handle)->fromFile ,16), char);
+    /* JK: allocate enough memory for all keys/values */
+    p = snewn( max( 3* ((struct setPack*) handle)->fromFile ,16), char);
 
-	/* JK: process linked list */
-	st1 = ((struct setPack*) handle)->handle;
-	writeok = 1;
+    /* JK: process linked list */
+    st1 = ((struct setPack*) handle)->handle;
+    writeok = 1;
 
-	while (st1) {
-		mungestr(st1->key, p);
-		writeok = writeok && WriteFile( (HANDLE) hFile, p, strlen(p), &written, NULL);
-		writeok = writeok && WriteFile( (HANDLE) hFile, "\\", 1, &written, NULL);
+    while (st1) {
+	mungestr(st1->key, p);
+	writeok = writeok && WriteFile( (HANDLE) hFile, p, strlen(p), &written, NULL);
+	writeok = writeok && WriteFile( (HANDLE) hFile, "\\", 1, &written, NULL);
 
-		mungestr(st1->value, p);
-		writeok = writeok && WriteFile( (HANDLE) hFile, p, strlen(p), &written, NULL);
-		writeok = writeok && WriteFile( (HANDLE) hFile, "\\\n", 2, &written, NULL);
+	mungestr(st1->value, p);
+	writeok = writeok && WriteFile( (HANDLE) hFile, p, strlen(p), &written, NULL);
+	writeok = writeok && WriteFile( (HANDLE) hFile, "\\\n", 2, &written, NULL);
 
-		if (!writeok) {
-			errorShow("Unable to save settings", st1->key);
-			return;
-			/* JK: memory should be freed here - fixme */
-		}
-
-		st2 = st1->next;
-		sfree(st1->key);
-		sfree(st1->value);
-		sfree(st1);
-		st1 = st2;
+	if (!writeok) {
+	    errorShow("Unable to save settings", st1->key);
+	    return;
+	    /* JK: memory should be freed here - fixme */
 	}
 
-	sfree(((struct setPack*) handle)->fileBuf);
-	CloseHandle( (HANDLE)hFile );
-	SetCurrentDirectory(oldpath);
+	st2 = st1->next;
+	sfree(st1->key);
+	sfree(st1->value);
+	sfree(st1);
+	st1 = st2;
+    }
+
+    sfree(((struct setPack*) handle)->fileBuf);
+    CloseHandle( (HANDLE)hFile );
+    SetCurrentDirectory(oldpath);
 }
 
 /* JK: Ahead declaration for logical order of functions open_settings_r_inner, open_settings_r */
@@ -563,16 +563,17 @@ void *open_settings_r_inner(const char *sessionname);
 
 void *open_settings_r(const char *sessionname)
 {
-	void *p = open_settings_r_inner(sessionname);
-	char *ses;
-	if (p == NULL) /* JK: try to find session with [registry] suffix*/
-	{
-		ses = snewn(strlen(sessionname)+16, char);
-		strcpy(ses, sessionname);
-		strcat(ses, " [registry]");
-		p = open_settings_r_inner(ses);
-	}
-	return p;
+    void *p = open_settings_r_inner(sessionname);
+    char *ses;
+
+    if (p == NULL) // Couldn't load, try to find session with [registry] suffix
+    {
+	ses = snewn(strlen(sessionname)+16, char);
+	strcpy(ses, sessionname);
+	strcat(ses, " [registry]");
+	p = open_settings_r_inner(ses);
+    }
+    return p;
 }
 
 void *open_settings_r_inner(const char *sessionname)
