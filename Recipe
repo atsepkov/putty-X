@@ -268,13 +268,16 @@ SSH      = ssh sshcrc sshdes sshmd5 sshrsa sshrand sshsha sshblowf
 WINSSH   = SSH winnoise winpgntc wingss
 UXSSH    = SSH uxnoise uxagentc uxgss
 
+# winstore uses CRC32-powered hash table
+WINSTORE  = winstore hashmap sshcrc
+
 # SFTP implementation (pscp, psftp).
 SFTP     = sftp int64 logging
 
 # Miscellaneous objects appearing in all the network utilities (not
 # Pageant or PuTTYgen).
 MISC     = timing misc version settings tree234 proxy
-WINMISC  = MISC winstore winnet winhandl cmdline windefs winmisc winproxy
+WINMISC  = MISC WINSTORE winnet winhandl cmdline windefs winmisc winproxy
          + wintime
 UXMISC   = MISC uxstore uxsel uxnet cmdline uxmisc uxproxy time
 OSXMISC  = MISC uxstore uxsel osxsel uxnet uxmisc uxproxy time
@@ -322,7 +325,7 @@ pageant  : [G] winpgnt sshrsa sshpubk sshdes sshbn sshmd5 version tree234
          + winmisc winhelp pageant.res LIBS
 
 puttygen : [G] winpgen sshrsag sshdssg sshprime sshdes sshbn sshmd5 version
-         + sshrand winnoise sshsha winstore misc winctrls sshrsa sshdss winmisc
+         + sshrand winnoise sshsha WINSTORE misc winctrls sshrsa sshdss winmisc
          + sshpubk sshaes sshsh256 sshsh512 import winutils puttygen.res
 	 + tree234 notiming winhelp winnojmp UTF8MOUSE LIBS wintime
 

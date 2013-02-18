@@ -574,6 +574,75 @@ void *open_settings_r(const char *sessionname)
 	strcat(ses, " [registry]");
 	p = open_settings_r_inner(ses);
     }
+
+#define RUN_HASHMAP_TEST
+#ifdef RUN_HASHMAP_TEST
+    /*************************/
+    /* TEMP: hash table test */
+    /*
+     * To 'run' this test, create a new session named 'hashmap_test'
+     * and then load that session using PuTTY config. Loading the
+     * session will trigger this test.
+     */
+    
+#ifdef HASHMAP_THROW_ASSERT
+#include <assert.h>
+#endif /* HASHMAP_THROW_ASSERT */
+    
+    if (sessionname && !strcmp(sessionname, "hashmap_test")) {
+	if (p == NULL) {
+	    MessageBox(NULL, "No data to test with", "Couldn't run test", MB_ICONINFORMATION | MB_OK);
+	} else {
+	    hashmap *h = Hashmap();
+	    
+	    // try populating it with all our data
+	    struct setItem *list_entry = ((struct setPack*) p)->handle;
+	    while (list_entry->key) {
+		hashmap_add(h, list_entry->key, list_entry->value);
+		list_entry = list_entry->next;
+	    }
+	    
+	    // now check that all entries exist
+	    list_entry = ((struct setPack*) p)->handle;
+#ifndef HASHMAP_THROW_ASSERT
+	    int success = 1;
+	    char *failed_tests = "Following entries don't match:";
+#endif /* not HASHMAP_THROW_ASSERT */
+	    while (list_entry->key) {
+		char *value = hashmap_get(h, list_entry->key);
+#ifdef HASHMAP_THROW_ASSERT
+		assert(list_entry->value != value);
+#endif /* HASHMAP_THROW_ASSERT */
+#ifndef HASHMAP_THROW_ASSERT
+		if (strcmp(list_entry->value, value)) {
+		    char test_failure[256]; // need to pre-allocate space, otherwise sprintf breaks
+		    sprintf(test_failure, "\n%s, expected: '%s', actual: '%s'",
+			    list_entry->key, list_entry->value, value);
+		    strcat(failed_tests, test_failure);
+		    success = 0;
+		}
+#endif /* not HASHMAP_THROW_ASSERT */
+		list_entry = list_entry->next;
+	    }
+#ifndef HASHMAP_THROW_ASSERT
+	    if (success) {
+		MessageBox(NULL, "Test passed", "Test status",
+			   MB_ICONINFORMATION | MB_OK);
+	    } else {
+		MessageBox(NULL, failed_tests, "Test status",
+			   MB_ICONWARNING | MB_OK);
+	    }
+#endif /* not HASHMAP_THROW_ASSERT */
+	    
+	    // clean up
+	    hashmap_free(h);
+	}
+    }
+    
+    /* TEMP: end hash table test */
+    /*****************************/
+#endif /* RUN_HASHMAP_TEST */
+    
     return p;
 }
 
