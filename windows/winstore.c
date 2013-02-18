@@ -18,6 +18,7 @@
 #include <limits.h>
 #include "putty.h"
 #include "storage.h"
+#include "hashmap.h"
 
 #include <shlobj.h>
 #ifndef CSIDL_APPDATA
@@ -680,7 +681,7 @@ void *open_settings_r_inner(const char *sessionname)
 	    return NULL;
 	}
 
-	/* JK: succes -> load structure setPack from file */
+	/* JK: success -> load structure setPack from file */
 	fileSize = GetFileSize(hFile, NULL);
 	fileCont = snewn(fileSize+16, char);
 
