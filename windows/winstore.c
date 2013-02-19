@@ -594,9 +594,10 @@ void *open_settings_r(const char *sessionname)
 	    MessageBox(NULL, "No data to test with", "Couldn't run test", MB_ICONINFORMATION | MB_OK);
 	} else {
 	    hashmap *h = Hashmap();
+	    struct setItem *list_entry;
 	    
 	    // try populating it with all our data
-	    struct setItem *list_entry = ((struct setPack*) p)->handle;
+	    list_entry = ((struct setPack*) p)->handle;
 	    while (list_entry->key) {
 		hashmap_add(h, list_entry->key, list_entry->value);
 		list_entry = list_entry->next;
