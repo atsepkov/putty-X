@@ -73,6 +73,28 @@ void hashmap_free(hashmap *h)
     sfree(h);
 }
 
+char **hashmap_keys(hashmap *h)
+{
+    /*
+     * A rather naive key iterator implementation for now, which scans through every bucket
+     */
+    char **key_array;
+    hashmap_entry *cell;
+    unsigned int key_index = 0;
+    unsigned int i;
+    for (i = 0; i < h->num_buckets; i++) {
+	cell = (hashmap_entry*)(h->data + i);
+	if (cell->has_entry) {
+	    while (cell->key) {
+		key_array[key_index] = cell->key;
+		cell = cell->next;
+		key_index++;
+	    }
+	}
+    }
+    return key_array;
+}
+
 unsigned int hash(hashmap *h, char *key)
 {
     unsigned long index = crc32_compute((void*)(key), sizeof(key));

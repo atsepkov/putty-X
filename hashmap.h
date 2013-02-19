@@ -52,6 +52,11 @@ hashmap *Hashmap();
 void hashmap_free(hashmap *h);
 
 /*
+ * Return an array of keys the hashmap uses
+ */
+char **hashmap_keys(hashmap *h);
+
+/*
  * Return the bucket offset for a given key as determined by the hashing
  * algorithm
  */
