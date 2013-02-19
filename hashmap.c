@@ -79,6 +79,18 @@ unsigned int hash(hashmap *h, char *key)
     return index % h->num_buckets;
 }
 
+#define HASHMAP_WIN_DEBUG
+/*
+ * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
+ * Unless you have WIN_DEBUG set, however, this module should be cross-platform. Feel free
+ * to add UNIX_DEBUG if you want, but unless there is something broken in this hashmap that
+ * I'm not aware of, there shouldn't be a need for it.
+ */
+
+#ifdef HASHMAP_WIN_DEBUG
+#include <windows.h>
+#endif /* HASHMAP_WIN_DEBUG */
+
 unsigned int hashmap_add(hashmap *h, char *key, char *value)
 {
     unsigned int index = hash(h, key);
@@ -88,12 +100,21 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
      * file in addition to normal config, so overwriting them inside our hash table
      * insertion logic directly will make the logic easier for us later.
      */
+#ifdef HASHMAP_WIN_DEBUG
+    int link_idx = 0;
+#endif /* HASHMAP_WIN_DEBUG */
     if (cell->has_entry == 1 && strcmp(key, cell->key)) {
 	// resolve collisions through separate chaining via linked lists (with list heads)
 	while (cell->next != NULL && strcmp(key, cell->key)) {
+#ifdef HASHMAP_WIN_DEBUG
+	    link_idx++;
+#endif /* HASHMAP_WIN_DEBUG */
 	    cell = cell->next;
 	}
-	if (strcmp(key, cell->key)) {
+	if (strcmp(key, cell->key)) { // key doesn't match, go to first link
+#ifdef HASHMAP_WIN_DEBUG
+	    link_idx++;
+#endif /* HASHMAP_WIN_DEBUG */
 	    cell->next = snew(hashmap_entry);
 	    cell = cell->next;
 	}
@@ -104,19 +125,12 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
     cell->key = key;
     cell->value = value;
     cell->next = NULL;
-}
-
-#define HASHMAP_WIN_DEBUG
-/*
- * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
- * Unless you have WIN_DEBUG set, however, this module should be cross-platform. Feel free
- * to add UNIX_DEBUG if you want, but unless there is something broken in this hashmap that
- * I'm not aware of, there shouldn't be a need for it.
- */
- 
 #ifdef HASHMAP_WIN_DEBUG
-#include <windows.h>
+    char info[256];
+    sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
+    MessageBox(NULL, info, "Adding", MB_ICONINFORMATION | MB_OK);
 #endif /* HASHMAP_WIN_DEBUG */
+}
 
 char *hashmap_get(hashmap *h, char *key)
 {
@@ -137,7 +151,7 @@ char *hashmap_get(hashmap *h, char *key)
 #ifdef HASHMAP_WIN_DEBUG
     char info[256];
     sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
-    MessageBox(NULL, info, "Title", MB_ICONINFORMATION | MB_OK);
+    MessageBox(NULL, info, "Getting", MB_ICONINFORMATION | MB_OK);
 #endif /* HASHMAP_WIN_DEBUG */
     return cell->value;
 }
