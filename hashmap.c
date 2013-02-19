@@ -78,18 +78,20 @@ char **hashmap_keys(hashmap *h)
     /*
      * A rather naive key iterator implementation for now, which scans through every bucket
      */
-    char **key_array;
+    char **key_array = snewn(NUM_BUCKETS, char*); // we're in trouble if our load factor is > 1
     hashmap_entry *cell;
     unsigned int key_index = 0;
     unsigned int i;
     for (i = 0; i < h->num_buckets; i++) {
 	cell = (hashmap_entry*)(h->data + i);
-	if (cell->has_entry) {
-	    while (cell->key) {
+	if (cell->has_entry == 1) {
+	    while (cell->next != NULL) {
 		key_array[key_index] = cell->key;
 		cell = cell->next;
 		key_index++;
 	    }
+	    key_array[key_index] = cell->key;
+	    key_index++;
 	}
     }
     return key_array;
@@ -101,7 +103,7 @@ unsigned int hash(hashmap *h, char *key)
     return index % h->num_buckets;
 }
 
-#define HASHMAP_WIN_DEBUG
+//#define HASHMAP_WIN_DEBUG
 /*
  * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
  * Unless you have WIN_DEBUG set, however, this module should be cross-platform. Feel free

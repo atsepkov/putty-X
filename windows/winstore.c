@@ -625,6 +625,18 @@ void *open_settings_r(const char *sessionname)
 #endif /* not HASHMAP_THROW_ASSERT */
 		list_entry = list_entry->next;
 	    }
+	    
+	    char **hash_keys = hashmap_keys(h);
+	    char *mapped_keys = "The following keys exist in the hash:\n";
+	    unsigned int key_index = 0;
+	    while (hash_keys[key_index]) {
+		strcat(mapped_keys, "\n");
+		strcat(mapped_keys, hash_keys[key_index]);
+		key_index++;
+	    }
+	    MessageBox(NULL, mapped_keys, "Mapped Keys",
+		       MB_ICONINFORMATION | MB_OK);
+	    
 #ifndef HASHMAP_THROW_ASSERT
 	    if (success) {
 		MessageBox(NULL, "Test passed", "Test status",
