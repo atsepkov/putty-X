@@ -88,12 +88,12 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
      * file in addition to normal config, so overwriting them inside our hash table
      * insertion logic directly will make the logic easier for us later.
      */
-    if (cell->has_entry == 1 && key != cell->key) {
+    if (cell->has_entry == 1 && strcmp(key, cell->key)) {
 	// resolve collisions through separate chaining via linked lists (with list heads)
-	while (cell->next != NULL && key != cell->key) {
+	while (cell->next != NULL && strcmp(key, cell->key)) {
 	    cell = cell->next;
 	}
-	if (key != cell->key) {
+	if (strcmp(key, cell->key)) {
 	    cell->next = snew(hashmap_entry);
 	    cell = cell->next;
 	}
@@ -126,14 +126,14 @@ char *hashmap_get(hashmap *h, char *key)
 #ifdef HASHMAP_WIN_DEBUG
     int link_idx = 0;
 #endif /* HASHMAP_WIN_DEBUG */
-    while (cell->next != NULL && cell->key != key) {
+    while (cell->next != NULL && strcmp(key, cell->key)) {
 #ifdef HASHMAP_WIN_DEBUG
 	link_idx++;
 #endif /* HASHMAP_WIN_DEBUG */
 	cell = cell->next;
     }
     
-    assert(cell->key == key);
+    assert(!strcmp(key, cell->key));
 #ifdef HASHMAP_WIN_DEBUG
     char info[256];
     sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
