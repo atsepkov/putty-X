@@ -106,14 +106,38 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
     cell->next = NULL;
 }
 
+#define HASHMAP_WIN_DEBUG
+/*
+ * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
+ * Unless you have WIN_DEBUG set, however, this module should be cross-platform. Feel free
+ * to add UNIX_DEBUG if you want, but unless there is something broken in this hashmap that
+ * I'm not aware of, there shouldn't be a need for it.
+ */
+ 
+#ifdef HASHMAP_WIN_DEBUG
+#include <windows.h>
+#endif /* HASHMAP_WIN_DEBUG */
+
 char *hashmap_get(hashmap *h, char *key)
 {
     unsigned int index = hash(h, key);
     hashmap_entry *cell = (hashmap_entry*)(h->data + index);
+
+#ifdef HASHMAP_WIN_DEBUG
+    int link_idx = 0;
+#endif /* HASHMAP_WIN_DEBUG */
     while (cell->next != NULL && cell->key != key) {
-        cell = cell->next;
+#ifdef HASHMAP_WIN_DEBUG
+	link_idx++;
+#endif /* HASHMAP_WIN_DEBUG */
+	cell = cell->next;
     }
     
     assert(cell->key == key);
+#ifdef HASHMAP_WIN_DEBUG
+    char info[256];
+    sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
+    MessageBox(NULL, info, "Title", MB_ICONINFORMATION | MB_OK);
+#endif /* HASHMAP_WIN_DEBUG */
     return cell->value;
 }
