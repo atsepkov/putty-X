@@ -36,7 +36,6 @@
  * future to allow any data type by using 'void *' instead of 'char *'.
  */
 
-#include <assert.h>
 #include "hashmap.h"
 #include "ssh.h"
 
@@ -187,7 +186,10 @@ char *hashmap_get(hashmap *h, char *key)
 	cell = cell->next;
     }
     
-    assert(!strcmp(key, cell->key));
+    if (strcmp(key, cell->key)) {
+	// reached the end of the bucket and the key still doesn't match
+	return NULL;
+    }
 #ifdef HASHMAP_WIN_DEBUG
     char info[256];
     sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
