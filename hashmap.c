@@ -128,6 +128,10 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
      * We expect duplicates to only occur when a setting is specified in Xresources
      * file in addition to normal config, so overwriting them inside our hash table
      * insertion logic directly will make the logic easier for us later.
+     *
+     * I set this logic to copy keys and values by value rather than by reference to
+     * make things  simpler to the outside logic calling this function. It doesn't 
+     * need to worry about clean-up or overwriting existing entries by accident.
      */
 #ifdef HASHMAP_WIN_DEBUG
     int link_idx = 0;
@@ -151,8 +155,15 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
         cell->has_entry = 1;
     }
     
-    cell->key = key;
-    cell->value = value;
+    if (cell->key && !strcmp(key, cell->key)) {
+	// avoid memory leaks if container is already in use
+	sfree(cell->value);
+    } else {
+	cell->key = snewn(strlen(key)+1, char);
+	strcpy(cell->key, key);
+    }
+    cell->value = snewn(strlen(value)+1, char);
+    strcpy(cell->value, value);
     cell->next = NULL;
 #ifdef HASHMAP_WIN_DEBUG
     char info[256];
