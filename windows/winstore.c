@@ -19,6 +19,7 @@
 #include "putty.h"
 #include "storage.h"
 #include "hashmap.h"
+#include "regexp.h"
 
 #include <shlobj.h>
 #ifndef CSIDL_APPDATA
@@ -609,13 +610,126 @@ void close_settings_w(void *handle)
 
 	key_index++;
     }
-    //hashmap_free(h);
+    hashmap_free(h);
 #endif /* not USE_LEGACY_STORAGE_CONTAINERS */
 
     sfree(((struct setPack*) handle)->fileBuf);
     CloseHandle( (HANDLE)hFile );
     SetCurrentDirectory(oldpath);
 }
+
+#ifndef USE_LEGACY_STORAGE_CONTAINERS
+static void regex_compile_failed(char *error)
+{
+    /*
+     * User is likely to see this if they specify bad parameters for Classes
+     */
+    char std_msg[] = "You specified invalid Xresources classes.\n\n";
+    char *full_msg = dupprintf("%s%s", std_msg, error);
+    MessageBox(0, full_msg, "PuTTY Tray Error", MB_OK);
+    free(full_msg);
+}
+
+/*
+ * Opens user-specified Xresources file, and overwrites current PuTTY settings
+ * with those values.
+ */
+void load_xresources_r(hashmap *h) {
+    char *fileCont;
+    char *p;
+    char *line;
+    char *key;
+    char *value;
+    char *xclasses;
+    DWORD fileSize;
+    DWORD bytesRead;
+    HANDLE hFile;
+    
+    const char *key_regex = "[A-Za-z_\\-][A-Za-z0-9_\\-]*";
+    const char *value_regex = "#?[A-Za-z0-9_\\-]*";
+    char *config_line_regex;
+    
+    regexp *key_rx;
+    regexp *val_rx;
+    regexp *config_val_rx;
+    
+    char *filename = hashmap_get(h, "XresourcesFile");
+    if (filename != NULL) {
+	hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (INVALID_HANDLE_VALUE == hFile) {
+	    errorShow("Unable to load Xresources file", filename);
+	} else {
+	    fileSize = GetFileSize(hFile, NULL);
+	    fileCont = snewn(fileSize+16, char);
+	    
+	    if (!ReadFile(hFile, fileCont, fileSize, &bytesRead, NULL)) {
+		errorShow("Unable to read contents of Xresources file", filename);
+	    }
+
+	    set_regerror_func(regex_compile_failed);
+	    key_rx = regcomp(key_regex);
+	    val_rx = regcomp(value_regex);
+
+	    xclasses = hashmap_get(h, "XresourcesApps");
+	    if (xclasses == NULL) {
+		CloseHandle(hFile);
+		return;
+	    }
+	    p = xclasses;
+	    while (p = strchr(p, ' ')) {
+		*p = '|';
+	    }
+	    
+	    config_line_regex = dupprintf("^(%s)[.*?]([A-Za-z][A-Za-z0-9]*):\\s*%s", xclasses, value_regex);
+	    config_val_rx = regcomp(config_line_regex);
+	    
+	    if (config_val_rx == 0) {
+		errorShow("Xresources regex didn't compile, check your classes", filename);
+	    }
+	    
+	    p = fileCont;
+	    while (p < (fileCont + fileSize)) {
+		/*
+		 * This file might be trickier to read than the typical sessions file, since
+		 * we're expecting that the user will modify it rather than PuTTY. As a result,
+		 * the file is likely to have extra whitespace, comments, blank lines, and
+		 * perhaps even typos. We need to degrade gracefully and continue parsing the
+		 * file instead of giving up. The only thing we can really rely on is the
+		 * newline character, so let's use that as the separator and rely on our regex
+		 * engine to parse the rest.
+		 *
+		 * This first iteration assumes key names are the same, I will fix this in a
+		 * later commit.
+		 */
+		line = p;
+		p = strchr(p, '\n');
+		if (!p) break;
+		*p = '\0';
+		p++;
+
+		if (regexec(config_val_rx, line) == 1) { // this is a valid line
+		    if (regexec(key_rx, line) == 1) {
+			key = *key_rx->startp[0];
+			line = strchr(line, ':');
+			*line = '\0';
+			line++;
+
+			 if (regexec(val_rx, line) == 1) {
+			    value = *val_rx->startp[0];
+			    line = *val_rx->endp[0]+1;
+			    *line = '\0';
+
+			    hashmap_add(h, key, value);
+			}
+		    }
+		}
+	    }
+	    
+	    CloseHandle(hFile);
+	}
+    }
+}
+#endif /* not USE_LEGACY_STORAGE_CONTAINERS */
 
 /* JK: Ahead declaration for logical order of functions open_settings_r_inner, open_settings_r */
 void *open_settings_r_inner(const char *sessionname);
@@ -914,6 +1028,9 @@ void *open_settings_r_inner(const char *sessionname)
 	sfree(p);
     }
 
+#ifndef USE_LEGACY_STORAGE_CONTAINERS
+    load_xresources_r((hashmap *)(sp->handle));
+#endif /* not USE_LEGACY_STORAGE_CONTAINERS */
     return sp;
 }
 
@@ -1098,7 +1215,7 @@ void close_settings_r(void *handle)
 #endif /* USE_LEGACY_STORAGE_CONTAINERS */
 #ifndef USE_LEGACY_STORAGE_CONTAINERS
 	hashmap *h = ((struct setPack*) handle)->handle;
-	//hashmap_free(h);
+	hashmap_free(h);
 #endif /* not USE_LEGACY_STORAGE_CONTAINERS */
 
 	sfree( ((struct setPack*) handle)->fileBuf );

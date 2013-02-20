@@ -269,7 +269,7 @@ WINSSH   = SSH winnoise winpgntc wingss
 UXSSH    = SSH uxnoise uxagentc uxgss
 
 # winstore uses CRC32-powered hash table
-WINSTORE  = winstore hashmap sshcrc
+WINSTORE  = winstore hashmap sshcrc regexp
 
 # SFTP implementation (pscp, psftp).
 SFTP     = sftp int64 logging
