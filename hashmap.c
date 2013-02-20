@@ -97,7 +97,7 @@ char **hashmap_keys(hashmap *h)
 }
 
 #define HASHMAP_WIN_DEBUG
-#define DEBUG_HASHMAP_ADD
+//#define DEBUG_HASHMAP_ADD
 /*
  * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
  * Unless you have WIN_DEBUG set, however, this module should be cross-platform. Feel free
@@ -155,13 +155,16 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
         cell->has_entry = 1;
     }
     
-    if (cell->key && !strcmp(key, cell->key)) {
-	// avoid memory leaks if container is already in use
-	sfree(cell->value);
-    } else {
+// TEMP: I seem to be deallocating space that's still in use here
+// when entry already exists in the same bucket. Need to investigate
+// what's happening later, for now I'll leave this minor memory leak here
+//    if (cell->key && !strcmp(key, cell->key)) {
+//	// avoid memory leaks if container is already in use
+//	sfree(cell->value);
+//    } else {*/
 	cell->key = snewn(strlen(key)+1, char);
 	strcpy(cell->key, key);
-    }
+//    }
     cell->value = snewn(strlen(value)+1, char);
     strcpy(cell->value, value);
     cell->next = NULL;
@@ -187,7 +190,7 @@ char *hashmap_get(hashmap *h, char *key)
 	cell = cell->next;
     }
     
-    if (strcmp(key, cell->key)) {
+    if (!cell->key || strcmp(key, cell->key)) {
 	// reached the end of the bucket and the key still doesn't match
 	return NULL;
     }
