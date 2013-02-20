@@ -97,12 +97,6 @@ char **hashmap_keys(hashmap *h)
     return key_array;
 }
 
-unsigned int hash(hashmap *h, char *key)
-{
-    unsigned long index = crc32_compute((void*)(key), sizeof(key));
-    return index % h->num_buckets;
-}
-
 //#define HASHMAP_WIN_DEBUG
 /*
  * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
@@ -114,6 +108,17 @@ unsigned int hash(hashmap *h, char *key)
 #ifdef HASHMAP_WIN_DEBUG
 #include <windows.h>
 #endif /* HASHMAP_WIN_DEBUG */
+
+unsigned int hash(hashmap *h, char *key)
+{
+    unsigned long index = crc32_compute((void*)(key), strlen(key));
+#ifdef HASHMAP_WIN_DEBUG
+    char hashval[256];
+    sprintf(hashval, "'%s' %d", key, index);
+    MessageBox(NULL, hashval, "Hashed Key", MB_ICONINFORMATION | MB_OK);
+#endif /* HASHMAP_WIN_DEBUG */
+    return index % h->num_buckets;
+}
 
 unsigned int hashmap_add(hashmap *h, char *key, char *value)
 {
