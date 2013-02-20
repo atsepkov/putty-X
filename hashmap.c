@@ -96,7 +96,8 @@ char **hashmap_keys(hashmap *h)
     return key_array;
 }
 
-//#define HASHMAP_WIN_DEBUG
+#define HASHMAP_WIN_DEBUG
+#define DEBUG_HASHMAP_ADD
 /*
  * Since I'm doing debugging on Windows, my debug logic is unfortunately Windows-specific.
  * Unless you have WIN_DEBUG set, however, this module should be cross-platform. Feel free
@@ -111,7 +112,7 @@ char **hashmap_keys(hashmap *h)
 unsigned int hash(hashmap *h, char *key)
 {
     unsigned long index = crc32_compute((void*)(key), strlen(key));
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHing_FUNCTION)
     char hashval[256];
     sprintf(hashval, "'%s' %d", key, index);
     MessageBox(NULL, hashval, "Hashed Key", MB_ICONINFORMATION | MB_OK);
@@ -132,19 +133,19 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
      * make things  simpler to the outside logic calling this function. It doesn't 
      * need to worry about clean-up or overwriting existing entries by accident.
      */
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_ADD)
     int link_idx = 0;
 #endif /* HASHMAP_WIN_DEBUG */
     if (cell->has_entry == 1 && strcmp(key, cell->key)) {
 	// resolve collisions through separate chaining via linked lists (with list heads)
 	while (cell->next != NULL && strcmp(key, cell->key)) {
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_ADD)
 	    link_idx++;
 #endif /* HASHMAP_WIN_DEBUG */
 	    cell = cell->next;
 	}
 	if (strcmp(key, cell->key)) { // key doesn't match, go to first link
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_ADD)
 	    link_idx++;
 #endif /* HASHMAP_WIN_DEBUG */
 	    cell->next = snew(hashmap_entry);
@@ -164,7 +165,7 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
     cell->value = snewn(strlen(value)+1, char);
     strcpy(cell->value, value);
     cell->next = NULL;
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_ADD)
     char info[256];
     sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
     MessageBox(NULL, info, "Adding", MB_ICONINFORMATION | MB_OK);
@@ -176,11 +177,11 @@ char *hashmap_get(hashmap *h, char *key)
     unsigned int index = hash(h, key);
     hashmap_entry *cell = (hashmap_entry*)(h->data + index);
 
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_GET)
     int link_idx = 0;
 #endif /* HASHMAP_WIN_DEBUG */
     while (cell->next != NULL && strcmp(key, cell->key)) {
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_GET)
 	link_idx++;
 #endif /* HASHMAP_WIN_DEBUG */
 	cell = cell->next;
@@ -190,7 +191,7 @@ char *hashmap_get(hashmap *h, char *key)
 	// reached the end of the bucket and the key still doesn't match
 	return NULL;
     }
-#ifdef HASHMAP_WIN_DEBUG
+#if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_GET)
     char info[256];
     sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
     MessageBox(NULL, info, "Getting", MB_ICONINFORMATION | MB_OK);
