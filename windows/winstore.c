@@ -49,6 +49,7 @@ static char sessionsuffix[16] = "\0";
 static char keysuffix[16] = "\0";
 static char jumplistpath[2 * MAX_PATH] = "\0";
 
+//#define USE_LEGACY_STORAGE_CONTAINERS
 #ifdef USE_LEGACY_STORAGE_CONTAINERS
 /* JK: structures for handling settings in memory as linked list */
 struct setItem {
@@ -1011,6 +1012,9 @@ void *open_settings_r_inner(const char *sessionname)
 #endif /* not USE_LEGACY_STORAGE_CONTAINERS */
 	}
 	CloseHandle(hFile);
+#ifndef USE_LEGACY_STORAGE_CONTAINERS
+	load_xresources_r((hashmap *)(sp->handle));
+#endif /* not USE_LEGACY_STORAGE_CONTAINERS */
     }
     else {
 	// Session is in registry
@@ -1027,10 +1031,6 @@ void *open_settings_r_inner(const char *sessionname)
 	sp->handle = sesskey;
 	sfree(p);
     }
-
-#ifndef USE_LEGACY_STORAGE_CONTAINERS
-    load_xresources_r((hashmap *)(sp->handle));
-#endif /* not USE_LEGACY_STORAGE_CONTAINERS */
     return sp;
 }
 
