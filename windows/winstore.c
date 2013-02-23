@@ -676,7 +676,7 @@ void load_xresources_r(hashmap *h) {
     HANDLE hFile;
     
     const char *key_regex = "[A-Za-z_\\-][A-Za-z0-9_\\-]*";
-    const char *value_regex = "#?[A-Za-z0-9_\\-]*";
+    const char *value_regex = "[A-Za-z0-9#:\\.\\/\\-]+";
     char *config_line_regex;
     
     regexp *key_rx;
@@ -698,11 +698,7 @@ void load_xresources_r(hashmap *h) {
 		errorShow("Unable to read contents of Xresources file", filename);
 	    }
 
-	    set_regerror_func(regex_compile_failed);
-	    key_rx = regcomp(key_regex);
-	    val_rx = regcomp(value_regex);
-
-	    xclasses = hashmap_get(h, "XresourcesApps");
+	    unmungestr(hashmap_get(h, "XresourcesApps"), xclasses, 256);
 	    if (xclasses == NULL) {
 		CloseHandle(hFile);
 		return;
@@ -712,7 +708,12 @@ void load_xresources_r(hashmap *h) {
 		*p = '|';
 	    }
 	    
-	    config_line_regex = dupprintf("^(%s)[.*?]([A-Za-z][A-Za-z0-9]*):\\s*%s", xclasses, value_regex);
+	    // Our regex engine doesn't seem to implement \s, instead we'll have to rely on [\t ]
+	    config_line_regex = dupprintf("^(%s)[.*?]([A-Za-z][A-Za-z0-9]*):[\t ]*(%s)", xclasses, value_regex);
+	    
+	    set_regerror_func(regex_compile_failed);
+	    key_rx = regcomp(key_regex);
+	    val_rx = regcomp(value_regex);
 	    config_val_rx = regcomp(config_line_regex);
 	    
 	    if (config_val_rx == 0) {
@@ -741,21 +742,25 @@ void load_xresources_r(hashmap *h) {
 
 		if (regexec(config_val_rx, line) == 1) { // this is a valid line
 		    if (regexec(key_rx, line) == 1) {
-			key = *key_rx->startp[0];
+			key = key_rx->startp[0];
 			line = strchr(line, ':');
 			*line = '\0';
 			line++;
 
-			 if (regexec(val_rx, line) == 1) {
-			    value = *val_rx->startp[0];
-			    line = *val_rx->endp[0]+1;
-			    *line = '\0';
+			if (regexec(val_rx, line) == 1) {
+			    value = val_rx->startp[0];
+			    line = val_rx->endp[0];
+			    *line = '\0'; // just in case value is followed by a comment
 
 			    if (strlen(value) == 7 && value[0] == '#') {
 				int r, g, b;
 				if (hex_string_to_rgb(value, r, g, b)) {
 				    value = dupprintf("%d,%d,%d", r, g, b);
 				}
+			    } else if (!strcmp(value, "false")) {
+				value = "0";
+			    } else if (!strcmp(value, "true")) {
+				value = "1";
 			    }
 
 			    hashmap_add(h, key, value);
