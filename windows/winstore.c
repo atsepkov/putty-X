@@ -675,7 +675,7 @@ void load_xresources_r(hashmap *h) {
     DWORD bytesRead;
     HANDLE hFile;
     
-    const char *key_regex = "[A-Za-z_\\-][A-Za-z0-9_\\-]*";
+    const char *key_regex = "[\\.\\*\\?][A-Za-z_\\-][A-Za-z0-9_\\-]*";
     const char *value_regex = "[A-Za-z0-9#:\\.\\/\\-]+";
     char *config_line_regex;
     
@@ -709,7 +709,7 @@ void load_xresources_r(hashmap *h) {
 	    }
 	    
 	    // Our regex engine doesn't seem to implement \s, instead we'll have to rely on [\t ]
-	    config_line_regex = dupprintf("^(%s)[.*?]([A-Za-z][A-Za-z0-9]*):[\t ]*(%s)", xclasses, value_regex);
+	    config_line_regex = dupprintf("^(%s)(%s):[\t ]*(%s)", xclasses, key_regex, value_regex);
 	    
 	    set_regerror_func(regex_compile_failed);
 	    key_rx = regcomp(key_regex);
@@ -742,7 +742,7 @@ void load_xresources_r(hashmap *h) {
 
 		if (regexec(config_val_rx, line) == 1) { // this is a valid line
 		    if (regexec(key_rx, line) == 1) {
-			key = key_rx->startp[0];
+			key = key_rx->startp[0]+1; // strip off the dot between class name and property
 			line = strchr(line, ':');
 			*line = '\0';
 			line++;
