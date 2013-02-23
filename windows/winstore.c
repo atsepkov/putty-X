@@ -631,6 +631,35 @@ static void regex_compile_failed(char *error)
     free(full_msg);
 }
 
+static int hex_string_to_rgb(char *hex, int *r, int *g, int *b) {
+    // We assume the actual string is of type '#ffffff', which is how Xresources 
+    // would expect it, at least for urxvt
+    hex++;	// we don't care about the #
+    int *colors[] = {r, g, b};
+    if (strlen(hex) == 6) {
+	unsigned int color;
+	unsigned int halfbyte;
+	unsigned int digit;
+	for (color=0; color<3; color++) {
+	    for (halfbyte=0; halfbyte<2; halfbyte++) {
+		digit = hex[color*2+halfbyte];
+		if (0x40 < digit && digit < 0x47) { // A-F
+		    digit -= 0x37;
+		} else if (0x2F < digit && digit < 0x3A) { // 0-9
+		    digit -= 0x30;
+		} else {
+		    // this isn't hex, no point in parsing it anymore
+		    return 0;
+		}
+		colors[color] += (digit << (4*halfbyte));
+	    }
+	}
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
 /*
  * Opens user-specified Xresources file, and overwrites current PuTTY settings
  * with those values.
@@ -654,8 +683,10 @@ void load_xresources_r(hashmap *h) {
     regexp *val_rx;
     regexp *config_val_rx;
     
-    char *filename = hashmap_get(h, "XresourcesFile");
-    if (filename != NULL) {
+    char *munged_filename = hashmap_get(h, "XresourcesFile");
+    if (munged_filename != NULL) {
+	char *filename;
+	unmungestr(munged_filename, filename, 256);
 	hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (INVALID_HANDLE_VALUE == hFile) {
 	    errorShow("Unable to load Xresources file", filename);
@@ -719,6 +750,13 @@ void load_xresources_r(hashmap *h) {
 			    value = *val_rx->startp[0];
 			    line = *val_rx->endp[0]+1;
 			    *line = '\0';
+
+			    if (strlen(value) == 7 && value[0] == '#') {
+				int r, g, b;
+				if (hex_string_to_rgb(value, r, g, b)) {
+				    value = dupprintf("%d,%d,%d", r, g, b);
+				}
+			    }
 
 			    hashmap_add(h, key, value);
 			}
