@@ -167,6 +167,7 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
 #endif /* HASHMAP_WIN_DEBUG */
 	    cell->next = snew(hashmap_entry);
 	    cell = cell->next;
+	    memset(cell, '\0', sizeof(cell));
 	}
     } else {
         cell->has_entry = 1;
@@ -175,13 +176,13 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
 // TEMP: I seem to be deallocating space that's still in use here
 // when entry already exists in the same bucket. Need to investigate
 // what's happening later, for now I'll leave this minor memory leak here
-//    if (cell->key && !strcmp(key, cell->key)) {
-//	// avoid memory leaks if container is already in use
-//	sfree(cell->value);
-//    } else {*/
+    if (cell->key && !strcmp(key, cell->key)) {
+	// avoid memory leaks if container is already in use
+	sfree(cell->value);
+    } else {
 	cell->key = snewn(strlen(key)+1, char);
 	strcpy(cell->key, key);
-//    }
+    }
     cell->value = snewn(strlen(value)+1, char);
     strcpy(cell->value, value);
     cell->next = NULL;
