@@ -521,6 +521,7 @@ void write_setting_i(void *handle, const char *key, int value)
 	char *str_value = snewn(16, char);
 	itoa(value, str_value, 10);
 	hashmap_add(h, key, str_value);
+	sfree(str_value);
 #endif /* not USE_LEGACY_STORAGE_CONTAINERS */
     }
 }
