@@ -75,9 +75,15 @@ void hashmap_free(hashmap *h)
     for (i = 0; i < h->num_buckets; i++) {
 	cell = (hashmap_entry*)(h->data + i);
 	if (cell->has_entry == 1 && cell->next) {
-	    cell = cell->next; // we want to be careful not to deallocate the original from the array yet
+	    sfree(cell->key);
+	    sfree(cell->value);
+	    // we want to be careful not to deallocate the cell itself from the array yet,
+	    // we want to deallocate the array as a whole, the way it was allocated
+	    cell = cell->next;
 	    while (cell->next != NULL) {
 		next_cell = cell->next;
+		sfree(cell->key);
+		sfree(cell->value);
 		sfree(cell);
 		cell = next_cell;
 	    }
@@ -172,10 +178,7 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
     } else {
         cell->has_entry = 1;
     }
-    
-// TEMP: I seem to be deallocating space that's still in use here
-// when entry already exists in the same bucket. Need to investigate
-// what's happening later, for now I'll leave this minor memory leak here
+
     if (cell->key && !strcmp(key, cell->key)) {
 	// avoid memory leaks if container is already in use
 	sfree(cell->value);
