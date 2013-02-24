@@ -68,6 +68,23 @@ hashmap *Hashmap()
 
 void hashmap_free(hashmap *h)
 {
+    // first we deallocate all the linked list entries inside the buckets
+    unsigned int i;
+    hashmap_entry *cell;
+    hashmap_entry *next_cell;
+    for (i = 0; i < h->num_buckets; i++) {
+	cell = (hashmap_entry*)(h->data + i);
+	if (cell->has_entry == 1 && cell->next) {
+	    cell = cell->next; // we want to be careful not to deallocate the original from the array yet
+	    while (cell->next != NULL) {
+		next_cell = cell->next;
+		sfree(cell);
+		cell = next_cell;
+	    }
+	}
+    }
+    
+    // and then the main container itself
     sfree(h->data);
     sfree(h);
 }

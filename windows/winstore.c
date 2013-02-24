@@ -612,6 +612,7 @@ void close_settings_w(void *handle)
 	key_index++;
     }
     hashmap_free(h);
+    sfree(hash_keys);
 #endif /* not USE_LEGACY_STORAGE_CONTAINERS */
 
     sfree(((struct setPack*) handle)->fileBuf);
