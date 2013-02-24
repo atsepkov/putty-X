@@ -687,7 +687,7 @@ void load_xresources_r(hashmap *h) {
     
     char *munged_filename = hashmap_get(h, "XresourcesFile");
     if (munged_filename != NULL) {
-	char *filename;
+	char *filename = snewn(256, char);
 	unmungestr(munged_filename, filename, 256);
 	hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (INVALID_HANDLE_VALUE == hFile) {
@@ -700,8 +700,11 @@ void load_xresources_r(hashmap *h) {
 		errorShow("Unable to read contents of Xresources file", filename);
 	    }
 
+	    xclasses = snewn(256, char);
 	    unmungestr(hashmap_get(h, "XresourcesApps"), xclasses, 256);
 	    if (xclasses == NULL) {
+		sfree(filename);
+		sfree(xclasses);
 		CloseHandle(hFile);
 		return;
 	    }
@@ -721,6 +724,10 @@ void load_xresources_r(hashmap *h) {
 	    if (config_val_rx == 0) {
 		errorShow("Xresources regex didn't compile, check your classes", filename);
 	    }
+	    
+	    char *keymap = snewn(4096, char);;
+	    char *tmp;
+	    char *end;
 	    
 	    p = fileCont;
 	    while (p < (fileCont + fileSize)) {
@@ -765,14 +772,27 @@ void load_xresources_r(hashmap *h) {
 				value = "1";
 			    }
 
+			    // remap keys based on user specification
+			    unmungestr(hashmap_get(h, "XresourcesMap"), keymap, 4096);
+			    tmp = strstr(keymap, key);
+			    if (tmp != NULL) {
+				tmp = strchr(tmp, '=')+1;		// offset past 'key=' to value
+				end = strchr(tmp, ',');
+				if (end != NULL) *end = '\0';
+				key = tmp;
+			    }
+
 			    hashmap_add(h, key, value);
 			}
 		    }
 		}
 	    }
+	    sfree(keymap);
+	    sfree(xclasses);
 	    
 	    CloseHandle(hFile);
 	}
+	sfree(filename);
     }
 }
 #endif /* not USE_LEGACY_STORAGE_CONTAINERS */
