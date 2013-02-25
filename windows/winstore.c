@@ -430,7 +430,12 @@ void *open_settings_w(const char *sessionname, char **errmsg)
 
     sp = snew( struct setPack );
     sp->fromFile = 0;
+#ifdef USE_LEGACY_STORAGE_CONTAINERS
     sp->handle = NULL;
+#endif /* USE_LEGACY_STORAGE_CONTAINERS */
+#ifndef USE_LEGACY_STORAGE_CONTAINERS
+    sp->handle = Hashmap();
+#endif /* not USE_LEGACY_STORAGE_CONTAINERS */
 
     /* JK: secure pack for filename */
     sp->fileBuf = snewn(3 * strlen(p) + 1 + 16, char);
