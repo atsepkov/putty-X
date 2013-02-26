@@ -74,18 +74,20 @@ void hashmap_free(hashmap *h)
     hashmap_entry *next_cell;
     for (i = 0; i < h->num_buckets; i++) {
 	cell = (hashmap_entry*)(h->data + i);
-	if (cell->has_entry == 1 && cell->next) {
+	if (cell->has_entry == 1) {
 	    sfree(cell->key);
 	    sfree(cell->value);
 	    // we want to be careful not to deallocate the cell itself from the array yet,
 	    // we want to deallocate the array as a whole, the way it was allocated
-	    cell = cell->next;
-	    while (cell->next != NULL) {
-		next_cell = cell->next;
-		sfree(cell->key);
-		sfree(cell->value);
-		sfree(cell);
-		cell = next_cell;
+	    if (cell->next != NULL) {
+		cell = cell->next;
+		while (cell != NULL) {
+		    next_cell = cell->next;
+		    sfree(cell->key);
+		    sfree(cell->value);
+		    sfree(cell);
+		    cell = next_cell;
+		}
 	    }
 	}
     }
