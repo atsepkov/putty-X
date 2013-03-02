@@ -2033,11 +2033,11 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
 	nfg = nbg;
 	nbg = t;
     }
-    if (inst->cfg.bold_colour && (attr & ATTR_BOLD)) {
+    if ((inst->cfg.bold_colour != FORCE_ON) && (attr & ATTR_BOLD)) {
 	if (nfg < 16) nfg |= 8;
 	else if (nfg >= 256) nfg |= 1;
     }
-    if (inst->cfg.bold_colour && (attr & ATTR_BLINK)) {
+    if ((inst->cfg.bold_colour != FORCE_ON) && (attr & ATTR_BLINK)) {
 	if (nbg < 16) nbg |= 8;
 	else if (nbg >= 256) nbg |= 1;
     }
@@ -2055,7 +2055,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
 	widefactor = 1;
     }
 
-    if ((attr & ATTR_BOLD) && !inst->cfg.bold_colour) {
+    if ((attr & ATTR_BOLD) && (inst->cfg.bold_colour != FORCE_OFF)) {
 	bold = 1;
 	fontid |= 1;
     } else {

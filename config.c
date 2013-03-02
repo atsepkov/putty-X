@@ -1766,9 +1766,13 @@ void setup_config_box(struct controlbox *b, int midsession,
     ctrl_checkbox(s, "Allow terminal to use xterm 256-colour mode", '2',
 		  HELPCTX(colours_xterm256), dlg_stdcheckbox_handler,
 		  I(offsetof(Config,xterm_256_colour)));
-    ctrl_checkbox(s, "Bolded text is a different colour", 'b',
+    ctrl_radiobuttons(s, "Bolded text distingished by:", 'b', 3,
 		  HELPCTX(colours_bold),
-		  dlg_stdcheckbox_handler, I(offsetof(Config,bold_colour)));
+		  dlg_stdradiobutton_handler,
+		  I(offsetof(Config,bold_colour)),
+		  "Colour", I(FORCE_OFF),
+		  "Font", I(FORCE_ON),
+		  "Both", I(AUTO), NULL);
 
     str = dupprintf("Adjust the precise colours %s displays", appname);
     s = ctrl_getset(b, "Window/Colours", "adjust", str);
