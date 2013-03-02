@@ -794,6 +794,7 @@ void load_xresources_r(void *handle) {
 	    }
 	    sfree(keymap);
 	    sfree(xclasses);
+	    sfree(fileCont);
 	    sfree(config_line_regex);
 	    
 	    CloseHandle(hFile);
