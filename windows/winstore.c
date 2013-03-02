@@ -856,7 +856,8 @@ void *open_settings_r(const char *sessionname)
 	    list_entry = ((struct setPack*) p)->handle;
 #ifndef HASHMAP_THROW_ASSERT
 	    int success = 1;
-	    char *failed_tests = "Following entries don't match:";
+	    char *failed_tests = snewn(4096, char);
+	    failed_tests = "Following entries don't match:";
 #endif /* not HASHMAP_THROW_ASSERT */
 	    while (list_entry->key) {
 		char *value = hashmap_get(h, list_entry->key);
@@ -865,8 +866,7 @@ void *open_settings_r(const char *sessionname)
 #endif /* HASHMAP_THROW_ASSERT */
 #ifndef HASHMAP_THROW_ASSERT
 		if (strcmp(list_entry->value, value)) {
-		    char test_failure[256]; // need to pre-allocate space, otherwise sprintf breaks
-		    sprintf(test_failure, "\n%s, expected: '%s', actual: '%s'",
+		    char *test_failure = dupprintf("\n%s, expected: '%s', actual: '%s'",
 			    list_entry->key, list_entry->value, value);
 		    strcat(failed_tests, test_failure);
 		    success = 0;
@@ -876,7 +876,8 @@ void *open_settings_r(const char *sessionname)
 	    }
 	    
 	    char **hash_keys = hashmap_keys(h);
-	    char *mapped_keys = "The following keys exist in the hash:\n";
+	    char *mapped_keys = snewn(4096, char); // should be large enough to hold all strings
+	    mapped_keys = "The following keys exist in the hash:\n";
 	    unsigned int key_index = 0;
 	    while (hash_keys[key_index]) {
 		strcat(mapped_keys, "\n");
@@ -894,9 +895,11 @@ void *open_settings_r(const char *sessionname)
 		MessageBox(NULL, failed_tests, "Test status",
 			   MB_ICONWARNING | MB_OK);
 	    }
+	    sfree(failed_tests);
 #endif /* not HASHMAP_THROW_ASSERT */
 	    
 	    // clean up
+	    sfree(mapped_keys);
 	    hashmap_free(h);
 	}
     }
