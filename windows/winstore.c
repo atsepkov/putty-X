@@ -691,7 +691,7 @@ void load_xresources_r(void *handle) {
     regexp *val_rx;
     regexp *config_val_rx;
     
-    char *filename = snewn(256, char);
+    char filename[256];
     // We want to check against NULL because read_setting_s will return that for undefined entries
     // We also want to check for empty string in case the user didn't specify actual filename
     if (read_setting_s(handle, "XresourcesFile", filename, sizeof(filename)) && *filename != '\0') {
@@ -707,8 +707,7 @@ void load_xresources_r(void *handle) {
 	    }
 
 	    xclasses = snewn(256, char);
-	    if (!read_setting_s(handle, "XresourcesApps", xclasses, sizeof(xclasses))) {
-		sfree(filename);
+	    if (!read_setting_s(handle, "XresourcesApps", xclasses, 256)) {
 		sfree(xclasses);
 		CloseHandle(hFile);
 		return;
@@ -730,7 +729,7 @@ void load_xresources_r(void *handle) {
 		errorShow("Xresources regex didn't compile, check your classes", filename);
 	    }
 	    
-	    char *keymap = snewn(4096, char);;
+	    char keymap[4096];
 	    char *tmp;
 	    char *end;
 	    
@@ -792,7 +791,6 @@ void load_xresources_r(void *handle) {
 		    }
 		}
 	    }
-	    sfree(keymap);
 	    sfree(xclasses);
 	    sfree(fileCont);
 	    sfree(config_line_regex);
@@ -800,7 +798,6 @@ void load_xresources_r(void *handle) {
 	    CloseHandle(hFile);
 	}
     }
-    sfree(filename);
 }
 
 /* JK: Ahead declaration for logical order of functions open_settings_r_inner, open_settings_r */
