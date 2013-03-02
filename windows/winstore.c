@@ -693,7 +693,9 @@ void load_xresources_r(hashmap *h) {
     regexp *config_val_rx;
     
     char *munged_filename = hashmap_get(h, "XresourcesFile");
-    if (munged_filename != NULL) {
+    // We want to check against NULL because hashmap_get will return that for undefined entries
+    // We also want to check for empty string in case the user didn't specify actual filename
+    if (munged_filename != NULL && *munged_filename != '\0') {
 	char *filename = snewn(256, char);
 	unmungestr(munged_filename, filename, 256);
 	hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
