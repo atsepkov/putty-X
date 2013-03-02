@@ -854,7 +854,7 @@ void *open_settings_r(const char *sessionname)
 #ifndef HASHMAP_THROW_ASSERT
 	    int success = 1;
 	    char *failed_tests = snewn(4096, char);
-	    failed_tests = "Following entries don't match:";
+	    strcpy(failed_tests, "Following entries don't match:");
 #endif /* not HASHMAP_THROW_ASSERT */
 	    while (list_entry->key) {
 		char *value = hashmap_get(h, list_entry->key);
@@ -874,7 +874,7 @@ void *open_settings_r(const char *sessionname)
 	    
 	    char **hash_keys = hashmap_keys(h);
 	    char *mapped_keys = snewn(4096, char); // should be large enough to hold all strings
-	    mapped_keys = "The following keys exist in the hash:\n";
+	    strcpy(mapped_keys, "The following keys exist in the hash:\n");
 	    unsigned int key_index = 0;
 	    while (hash_keys[key_index]) {
 		strcat(mapped_keys, "\n");
