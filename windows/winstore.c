@@ -707,8 +707,7 @@ void load_xresources_r(void *handle) {
 	    }
 
 	    xclasses = snewn(256, char);
-	    read_setting_s(handle, "XresourcesApps", xclasses, sizeof(xclasses));
-	    if (xclasses == NULL) {
+	    if (!read_setting_s(handle, "XresourcesApps", xclasses, sizeof(xclasses))) {
 		sfree(filename);
 		sfree(xclasses);
 		CloseHandle(hFile);
