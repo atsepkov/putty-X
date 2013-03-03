@@ -60,17 +60,17 @@ char **hashmap_keys(hashmap *h);
  * Return the bucket offset for a given key as determined by the hashing
  * algorithm
  */
-unsigned int hash(hashmap *h, char *key);
+unsigned int hash(hashmap *h, const char *key);
 
 /*
  * Add a new element to the hash table, return 1 on success, 0 otherwise
  */
-unsigned int hashmap_add(hashmap *h, char *key, char *value);
+unsigned int hashmap_add(hashmap *h, const char *key, const char *value);
 
 /*
  * Get the value of a given key
  */
-char *hashmap_get(hashmap *h, char *key);
+const char *hashmap_get(hashmap *h, const char *key);
 
 /*
  * I will not bother with clean-up since this hash only gets populated at load

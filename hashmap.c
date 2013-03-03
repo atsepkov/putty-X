@@ -134,7 +134,7 @@ char **hashmap_keys(hashmap *h)
 #include <windows.h>
 #endif /* HASHMAP_WIN_DEBUG */
 
-unsigned int hash(hashmap *h, char *key)
+unsigned int hash(hashmap *h, const char *key)
 {
     unsigned long index = crc32_compute((void*)(key), strlen(key));
 #if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHing_FUNCTION)
@@ -145,7 +145,7 @@ unsigned int hash(hashmap *h, char *key)
     return index % h->num_buckets;
 }
 
-unsigned int hashmap_add(hashmap *h, char *key, char *value)
+unsigned int hashmap_add(hashmap *h, const char *key, const char *value)
 {
     unsigned int index = hash(h, key);
     hashmap_entry *cell = (hashmap_entry*)(h->data + index);
@@ -198,7 +198,7 @@ unsigned int hashmap_add(hashmap *h, char *key, char *value)
 #endif /* HASHMAP_WIN_DEBUG */
 }
 
-char *hashmap_get(hashmap *h, char *key)
+const char *hashmap_get(hashmap *h, const char *key)
 {
     unsigned int index = hash(h, key);
     hashmap_entry *cell = (hashmap_entry*)(h->data + index);
