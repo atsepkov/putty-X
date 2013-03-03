@@ -156,20 +156,24 @@ struct agent_callback {
     int len;
 };
 
-#define FONT_NORMAL 0
-#define FONT_BOLD 1
-#define FONT_UNDERLINE 2
-#define FONT_BOLDUND 3
-#define FONT_WIDE	0x04
-#define FONT_HIGH	0x08
-#define FONT_NARROW	0x10
+#define FONT_NORMAL	0
+#define FONT_BOLD	1
+#define FONT_UNDERLINE	2
+#define FONT_BOLDUND	3
+#define FONT_ITALIC	4
+#define FONT_BOLDITA	5
+#define FONT_UNDERITA	6
 
-#define FONT_OEM 	0x20
-#define FONT_OEMBOLD 	0x21
-#define FONT_OEMUND 	0x22
-#define FONT_OEMBOLDUND 0x23
+#define FONT_WIDE	0x08
+#define FONT_HIGH	0x10
+#define FONT_NARROW	0x20
 
-#define FONT_MAXNO 	0x2F
+#define FONT_OEM 	0x40
+#define FONT_OEMBOLD 	0x41
+#define FONT_OEMUND 	0x42
+#define FONT_OEMBOLDUND 0x43
+
+#define FONT_MAXNO 	0x4F
 #define FONT_SHIFT	5
 static HFONT fonts[FONT_MAXNO];
 static LOGFONT lfont;
@@ -177,8 +181,9 @@ static int fontflag[FONT_MAXNO];
 static enum {
     BOLD_COLOURS = 1,
     BOLD_SHADOW = 2,
-    BOLD_FONT = 4
-} bold_mode;
+    BOLD_FONT = 4,
+    ITALIC = 8
+} font_mode;
 static enum {
     UND_LINE, UND_FONT
 } und_mode;
@@ -1465,13 +1470,14 @@ static void init_fonts(int pick_width, int pick_height)
     for (i = 0; i < FONT_MAXNO; i++)
 	fonts[i] = NULL;
 
-    bold_mode = 0;
+    font_mode = 0;
     if (cfg.bold_colour != FORCE_ON) {
-	bold_mode += BOLD_COLOURS;
+	font_mode += BOLD_COLOURS;
     }
     if (cfg.bold_colour != FORCE_OFF) {
-	bold_mode += BOLD_FONT;
+	font_mode += BOLD_FONT;
     }
+    font_mode += ITALIC;
     und_mode = UND_FONT;
 
     if (cfg.font.isbold) {
@@ -1495,15 +1501,17 @@ static void init_fonts(int pick_width, int pick_height)
     }
     font_width = pick_width;
 
-#define f(i,c,w,u) \
-    fonts[i] = CreateFont (font_height, font_width, 0, 0, w, FALSE, u, FALSE, \
+#define f(j,c,w,u,i) \
+    fonts[j] = CreateFont (font_height, font_width, 0, 0, w, i, u, FALSE, \
 			   c, OUT_DEFAULT_PRECIS, \
 		           CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg.font_quality), \
 			   FIXED_PITCH | FF_DONTCARE, cfg.font.name)
 
-    f(FONT_NORMAL, cfg.font.charset, fw_dontcare, FALSE);
-    if (bold_mode & BOLD_FONT) {
-	f(FONT_BOLD, cfg.font.charset, fw_bold, FALSE);
+    f(FONT_NORMAL, cfg.font.charset, fw_dontcare, FALSE, FALSE);
+    f(FONT_ITALIC, cfg.font.charset, fw_dontcare, FALSE, TRUE);
+    if (font_mode & BOLD_FONT) {
+	f(FONT_BOLD, cfg.font.charset, fw_bold, FALSE, FALSE);
+	f(FONT_BOLDITA, cfg.font.charset, fw_bold, FALSE, TRUE);
     }
 
     SelectObject(hdc, fonts[FONT_NORMAL]);
@@ -1547,7 +1555,8 @@ static void init_fonts(int pick_width, int pick_height)
 	ucsdata.dbcs_screenfont = (cpinfo.MaxCharSize > 1);
     }
 
-    f(FONT_UNDERLINE, cfg.font.charset, fw_dontcare, TRUE);
+    f(FONT_UNDERLINE, cfg.font.charset, fw_dontcare, TRUE, FALSE);
+    f(FONT_UNDERITA, cfg.font.charset, fw_dontcare, TRUE, TRUE);
 
     /*
      * Some fonts, e.g. 9-pt Courier, draw their underlines
@@ -1620,9 +1629,9 @@ static void init_fonts(int pick_width, int pick_height)
 	fonts[FONT_UNDERLINE] = 0;
     }
 
-    if (bold_mode & BOLD_FONT &&
+    if (font_mode & BOLD_FONT &&
 	fontsize[FONT_BOLD] != fontsize[FONT_NORMAL]) {
-	bold_mode += BOLD_SHADOW - BOLD_FONT;
+	font_mode += BOLD_SHADOW - BOLD_FONT;
 	DeleteObject(fonts[FONT_BOLD]);
 	fonts[FONT_BOLD] = 0;
     }
@@ -1635,7 +1644,7 @@ static void another_font(int fontno)
 {
     int basefont;
     int fw_dontcare, fw_bold;
-    int c, u, w, x;
+    int c, i, u, w, x;
     char *s;
 
     if (fontno < 0 || fontno >= FONT_MAXNO || fontflag[fontno])
@@ -1655,6 +1664,7 @@ static void another_font(int fontno)
 
     c = cfg.font.charset;
     w = fw_dontcare;
+    i = FALSE;
     u = FALSE;
     s = cfg.font.name;
     x = font_width;
@@ -1669,10 +1679,12 @@ static void another_font(int fontno)
 	w = fw_bold;
     if (fontno & FONT_UNDERLINE)
 	u = TRUE;
+    if (fontno & FONT_ITALIC)
+	i = TRUE;
 
     fonts[fontno] =
 	CreateFont(font_height * (1 + !!(fontno & FONT_HIGH)), x, 0, 0, w,
-		   FALSE, u, FALSE, c, OUT_DEFAULT_PRECIS,
+		   i, u, FALSE, c, OUT_DEFAULT_PRECIS,
 		   CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg.font_quality),
 		   DEFAULT_PITCH | FF_DONTCARE, s);
 
@@ -3397,7 +3409,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
 
     if ((attr & TATTR_ACTCURS) && (cfg.cursor_type == 0 || term->big_cursor)) {
 	attr &= ~(ATTR_REVERSE|ATTR_BLINK|ATTR_COLOURS);
-	if (bold_mode & BOLD_COLOURS)
+	if (font_mode & BOLD_COLOURS)
 	    attr &= ~ATTR_BOLD;
 
 	/* cursor fg and bg */
@@ -3460,8 +3472,10 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
 
     nfg = ((attr & ATTR_FGMASK) >> ATTR_FGSHIFT);
     nbg = ((attr & ATTR_BGMASK) >> ATTR_BGSHIFT);
-    if (bold_mode & BOLD_FONT && (attr & ATTR_BOLD))
+    if (font_mode & BOLD_FONT && (attr & ATTR_BOLD))
 	nfont |= FONT_BOLD;
+    if (font_mode & ITALIC && (attr & ATTR_ITALIC))
+	nfont |= FONT_ITALIC;
     if (und_mode == UND_FONT && (attr & ATTR_UNDER))
 	nfont |= FONT_UNDERLINE;
     another_font(nfont);
@@ -3470,7 +3484,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
 	    force_manual_underline = 1;
 	/* Don't do the same for manual bold, it could be bad news. */
 
-	nfont &= ~(FONT_BOLD | FONT_UNDERLINE);
+	nfont &= ~(FONT_BOLD | FONT_UNDERLINE | FONT_ITALIC);
     }
     another_font(nfont);
     if (!fonts[nfont])
@@ -3480,11 +3494,11 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
 	nfg = nbg;
 	nbg = t;
     }
-    if (bold_mode & BOLD_COLOURS && (attr & ATTR_BOLD)) {
+    if (font_mode & BOLD_COLOURS && (attr & ATTR_BOLD)) {
 	if (nfg < 16) nfg |= 8;
 	else if (nfg >= 256) nfg |= 1;
     }
-    if (bold_mode & BOLD_COLOURS && (attr & ATTR_BLINK)) {
+    if (font_mode & BOLD_COLOURS && (attr & ATTR_BLINK)) {
 	if (nbg < 16) nbg |= 8;
 	else if (nbg >= 256) nbg |= 1;
     }
@@ -3588,7 +3602,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
                         ETO_CLIPPED | (opaque ? ETO_OPAQUE : 0),
                         &line_box, uni_buf, nlen,
                         lpDx_maybe);
-            if (bold_mode & BOLD_SHADOW && (attr & ATTR_BOLD)) {
+            if (font_mode & BOLD_SHADOW && (attr & ATTR_BOLD)) {
                 SetBkMode(hdc, TRANSPARENT);
                 ExtTextOutW(hdc, x + xoffset - 1,
                             y - font_height * (lattr ==
@@ -3613,7 +3627,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
                        y - font_height * (lattr == LATTR_BOT) + text_adjust,
                        ETO_CLIPPED | (opaque ? ETO_OPAQUE : 0),
                        &line_box, directbuf, len, lpDx_maybe);
-            if (bold_mode & BOLD_SHADOW && (attr & ATTR_BOLD)) {
+            if (font_mode & BOLD_SHADOW && (attr & ATTR_BOLD)) {
                 SetBkMode(hdc, TRANSPARENT);
 
                 /* GRR: This draws the character outside its box and
@@ -3652,7 +3666,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
                             opaque && !(attr & TATTR_COMBINING));
 
             /* And the shadow bold hack. */
-            if (bold_mode & BOLD_SHADOW && (attr & ATTR_BOLD)) {
+            if (font_mode & BOLD_SHADOW && (attr & ATTR_BOLD)) {
                 SetBkMode(hdc, TRANSPARENT);
                 ExtTextOutW(hdc, x + xoffset - 1,
                             y - font_height * (lattr ==
@@ -4954,7 +4968,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		    bgcolour = tmpcolour;
 		}
 
-		if (bold_mode & BOLD_COLOURS && (attr[i] & ATTR_BOLD)) {
+		if (font_mode & BOLD_COLOURS && (attr[i] & ATTR_BOLD)) {
 		    if (fgcolour  <   8)	/* ANSI colours */
 			fgcolour +=   8;
 		    else if (fgcolour >= 256)	/* Default colours */
@@ -5045,7 +5059,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		    bgcolour = tmpcolour;
 		}
 
-		if (bold_mode & BOLD_COLOURS && (attr[tindex] & ATTR_BOLD)) {
+		if (font_mode & BOLD_COLOURS && (attr[tindex] & ATTR_BOLD)) {
 		    if (fgcolour  <   8)	    /* ANSI colours */
 			fgcolour +=   8;
 		    else if (fgcolour >= 256)	    /* Default colours */
@@ -5062,7 +5076,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
                 /*
                  * Collect other attributes
                  */
-		if (!(bold_mode & BOLD_COLOURS))
+		if (!(font_mode & BOLD_COLOURS))
 		    attrBold  = attr[tindex] & ATTR_BOLD;
 		else
 		    attrBold  = 0;
@@ -5081,7 +5095,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 			bgcolour  = -1;		    /* No coloring */
 
 		    if (fgcolour >= 256) {	    /* Default colour */
-			if (bold_mode & BOLD_COLOURS && (fgcolour & 1) && bgcolour == -1)
+			if (font_mode & BOLD_COLOURS && (fgcolour & 1) && bgcolour == -1)
 			    attrBold = ATTR_BOLD;   /* Emphasize text with bold attribute */
 
 			fgcolour  = -1;		    /* No coloring */
