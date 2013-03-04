@@ -190,7 +190,6 @@ unsigned int hashmap_add(hashmap *h, const char *key, const char *value)
     }
     cell->value = snewn(strlen(value)+1, char);
     strcpy(cell->value, value);
-    cell->next = NULL;
 #if defined(HASHMAP_WIN_DEBUG) && defined(DEBUG_HASHMAP_ADD)
     char info[256];
     sprintf(info, "%d-%d: '%s'->'%s'", index, link_idx, cell->key, cell->value);
