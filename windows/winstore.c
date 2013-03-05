@@ -49,7 +49,7 @@ static char sessionsuffix[16] = "\0";
 static char keysuffix[16] = "\0";
 static char jumplistpath[2 * MAX_PATH] = "\0";
 
-//#define USE_LEGACY_STORAGE_CONTAINERS
+#define USE_LEGACY_STORAGE_CONTAINERS
 #ifdef USE_LEGACY_STORAGE_CONTAINERS
 /* JK: structures for handling settings in memory as linked list */
 struct setItem {
@@ -457,7 +457,7 @@ void write_setting_s(void *handle, const char *key, const char *value)
 	struct setItem *st;
 	st = ((struct setPack*) handle)->handle;
 	while (st) {
-	    if ( strcmp(st->key, key) == 0) {
+	    if ( st->key != NULL && strcmp(st->key, key) == 0) {
 		/* this key already set -> reset */
 		sfree(st->value);
 		st->value = snewn( strlen(value)+1, char);
