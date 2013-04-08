@@ -1,3 +1,35 @@
+Putty-X README:
+
+Putty-X is a customized version of Putty that behaves more similar to RXVT-Unicode (and Xterm). It implements proper mouse support for all extended modes, much better meta-key combination support (mirroring Xterm/Mintty, supporting meta character prefixes for function, arrow, and other keys), italic text support, better bold font rendering (no jagged edges and ability to independently control bold font color - like with real *nix terminals), and ability to read settings from Xresources file.
+
+To read settings from Xresources file, first point Putty-X to the location of the file (from Xresources portion of the config). Then tell it which classes to read settings from (by default, it will read Rxvt, URxvt, and Putty). The setting names default to the same ones as in pterm (http://linux.die.net/man/1/pterm), but you can remap additional ones in Xresources portion of the config. For example, the following map will map RXVT-Unicode colors from Xresources to Putty:
+
+Original            Putty
+-------------------------------
+color0              Colour6
+color1              Colour8
+color2              Colour10
+color3              Colour12
+color4              Colour14
+color5              Colour16
+color6              Colour18
+color7              Colour20
+color8              Colour7
+color9              Colour9
+color10             Colour11
+color11             Colour13
+color12             Colour15
+color13             Colour17
+color14             Colour19
+color15             Colour21
+cursorColor         Colour5
+cursorBlink         BlinkCur
+
+You can map other properties in a similar manner. Putty-X will automatically convert colors from hex format (#ffffff) to one Putty uses, and will do the same with booleans. This is not true of all properties, however. In the future I might embed lua into Putty-X for scripting to remedy that, but since Putty-X already suits all my needs, that's a relatively low priority task for me.
+
+
+Original README:
+
 This is the README for the source archive of PuTTY, a free Win32
 and Unix Telnet and SSH client.
 
