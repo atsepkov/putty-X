@@ -12,7 +12,7 @@
 
 /*
  * HACK: PuttyTray / Nutty
- */ 
+ */
 #include "urlhack.h"
 
 #ifndef NO_MULTIMON
@@ -108,7 +108,7 @@ static int font_width, font_height, font_dualwidth, font_varpitch;
 static int offset_width, offset_height;
 static int was_zoomed = 0;
 static int prev_rows, prev_cols;
-  
+
 static int pending_netevent = 0;
 static WPARAM pend_netevent_wParam = 0;
 static LPARAM pend_netevent_lParam = 0;
@@ -216,7 +216,7 @@ static UINT wm_mousewheel = WM_MOUSEWHEEL;
 
 /*
  * HACK: PuttyTray / Nutty
- */ 
+ */
 static int urlhack_cursor_is_hand = 0;
 
 static BOOL (WINAPI *pSetLayeredWindowAttributes)(HWND,COLORREF,BYTE,DWORD);
@@ -422,7 +422,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
      * using instead.
      */
     if (osVersion.dwMajorVersion < 4 ||
-	(osVersion.dwMajorVersion == 4 && 
+	(osVersion.dwMajorVersion == 4 &&
 	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT))
 	wm_mousewheel = RegisterWindowMessage("MSWHEEL_ROLLMSG");
 
@@ -521,7 +521,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
 	     */
 	    int argc, i;
 	    char **argv;
-	    
+
 	    split_into_argv(cmdline, &argc, &argv, NULL);
 
 	    for (i = 0; i < argc; i++) {
@@ -1453,7 +1453,7 @@ static int get_font_width(HDC hdc, const TEXTMETRIC *tm)
  *
  * - verify that the bold font is the same width as the ordinary
  *   one, and engage shadow bolding if not.
- * 
+ *
  * - verify that the underlined font is the same width as the
  *   ordinary one (manual underlining by means of line drawing can
  *   be done in a pinch).
@@ -1760,8 +1760,8 @@ void request_resize(void *frontend, int w, int h)
 
 static void reset_window(int reinit) {
     /*
-     * This function decides how to resize or redraw when the 
-     * user changes something. 
+     * This function decides how to resize or redraw when the
+     * user changes something.
      *
      * This function doesn't like to change the terminal size but if the
      * font size is locked that may be it's only soluion.
@@ -1798,7 +1798,7 @@ static void reset_window(int reinit) {
 	return;
 
     /* Is the window out of position ? */
-    if ( !reinit && 
+    if ( !reinit &&
 	    (offset_width != (win_width-font_width*term->cols)/2 ||
 	     offset_height != (win_height-font_height*term->rows)/2) ){
 	offset_width = (win_width-font_width*term->cols)/2;
@@ -1818,7 +1818,7 @@ static void reset_window(int reinit) {
 	extra_height = wr.bottom - wr.top - cr.bottom + cr.top;
 
 	if (cfg.resize_action != RESIZE_TERM) {
-	    if (  font_width != win_width/term->cols || 
+	    if (  font_width != win_width/term->cols ||
 		  font_height != win_height/term->rows) {
 		deinit_fonts();
 		init_fonts(win_width/term->cols, win_height/term->rows);
@@ -1831,9 +1831,9 @@ static void reset_window(int reinit) {
 #endif
 	    }
 	} else {
-	    if (  font_width * term->cols != win_width || 
+	    if (  font_width * term->cols != win_width ||
 		  font_height * term->rows != win_height) {
-		/* Our only choice at this point is to change the 
+		/* Our only choice at this point is to change the
 		 * size of the terminal; Oh well.
 		 */
 		term_size(term, win_height/font_height, win_width/font_width,
@@ -1868,8 +1868,8 @@ static void reset_window(int reinit) {
 	     * allowed window size, we will then be back in here and resize
 	     * the font or terminal to fit.
 	     */
-	    SetWindowPos(hwnd, NULL, 0, 0, 
-		         font_width*term->cols + extra_width, 
+	    SetWindowPos(hwnd, NULL, 0, 0,
+		         font_width*term->cols + extra_width,
 			 font_height*term->rows + extra_height,
 			 SWP_NOMOVE | SWP_NOZORDER);
 	}
@@ -1878,7 +1878,7 @@ static void reset_window(int reinit) {
 	return;
     }
 
-    /* Okay the user doesn't want us to change the font so we try the 
+    /* Okay the user doesn't want us to change the font so we try the
      * window. But that may be too big for the screen which forces us
      * to change the terminal.
      */
@@ -1894,7 +1894,7 @@ static void reset_window(int reinit) {
 
 	    static RECT ss;
 	    int width, height;
-		
+
 		get_fullscreen_rect(&ss);
 
 	    width = (ss.right - ss.left - extra_width) / font_width;
@@ -1926,9 +1926,9 @@ static void reset_window(int reinit) {
 #endif
 		}
 	    }
-	    
-	    SetWindowPos(hwnd, NULL, 0, 0, 
-		         font_width*term->cols + extra_width, 
+
+	    SetWindowPos(hwnd, NULL, 0, 0,
+		         font_width*term->cols + extra_width,
 			 font_height*term->rows + extra_height,
 			 SWP_NOMOVE | SWP_NOZORDER);
 
@@ -1944,11 +1944,11 @@ static void reset_window(int reinit) {
 
     /* We're allowed to or must change the font but do we want to ?  */
 
-    if (font_width != (win_width-cfg.window_border*2)/term->cols || 
+    if (font_width != (win_width-cfg.window_border*2)/term->cols ||
 	font_height != (win_height-cfg.window_border*2)/term->rows) {
 
 	deinit_fonts();
-	init_fonts((win_width-cfg.window_border*2)/term->cols, 
+	init_fonts((win_width-cfg.window_border*2)/term->cols,
 		   (win_height-cfg.window_border*2)/term->rows);
 	offset_width = (win_width-font_width*term->cols)/2;
 	offset_height = (win_height-font_height*term->rows)/2;
@@ -1958,7 +1958,7 @@ static void reset_window(int reinit) {
 
 	InvalidateRect(hwnd, NULL, TRUE);
 #ifdef RDB_DEBUG_PATCH
-	debug((25, "reset_window() -> font resize to (%d,%d)", 
+	debug((25, "reset_window() -> font resize to (%d,%d)",
 		   font_width, font_height));
 #endif
     }
@@ -2088,7 +2088,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 
 	/*
 	 * HACK: PuttyTray / Nutty
-	 */ 
+	 */
 	POINT cursor_pt;
 
     switch (message) {
@@ -2243,7 +2243,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 		    int i;
 		    for (i = 0; i < lenof(popup_menus); i++)
 			EnableMenuItem(popup_menus[i].menu, IDM_FULLSCREEN,
-				       MF_BYCOMMAND | 
+				       MF_BYCOMMAND |
 				       (cfg.resize_action == RESIZE_DISABLED)
 				       ? MF_GRAYED : MF_ENABLED);
 		    /* Gracefully unzoom if necessary */
@@ -2589,7 +2589,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	/*
 	 * HACK: PuttyTray / Nutty
 	 * Hyperlink stuff: Change cursor type if hovering over link
-	 */ 
+	 */
 	if (urlhack_mouse_old_x != TO_CHR_X(X_POS(lParam)) || urlhack_mouse_old_y != TO_CHR_Y(Y_POS(lParam))) {
 		urlhack_mouse_old_x = TO_CHR_X(X_POS(lParam));
 		urlhack_mouse_old_y = TO_CHR_Y(Y_POS(lParam));
@@ -2682,7 +2682,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	     * pending terminal update: just mark the relevant
 	     * character cells as INVALID and wait for the
 	     * scheduled full update to sort it out.
-	     * 
+	     *
 	     * I have a suspicion this isn't the _right_ solution.
 	     * An alternative approach would be to have terminal.c
 	     * separately track what _should_ be on the terminal
@@ -2696,7 +2696,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	     * current terminal appearance so that WM_PAINT becomes
 	     * completely trivial. However, this should do for now.
 	     */
-	    term_paint(term, hdc, 
+	    term_paint(term, hdc,
 		       (p.rcPaint.left-offset_width)/font_width,
 		       (p.rcPaint.top-offset_height)/font_height,
 		       (p.rcPaint.right-offset_width-1)/font_width,
@@ -2714,7 +2714,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 		fillcolour = CreateSolidBrush (
 				    colours[ATTR_DEFBG>>ATTR_BGSHIFT]);
 		oldbrush = SelectObject(hdc, fillcolour);
-		edge = CreatePen(PS_SOLID, 0, 
+		edge = CreatePen(PS_SOLID, 0,
 				    colours[ATTR_DEFBG>>ATTR_BGSHIFT]);
 		oldpen = SelectObject(hdc, edge);
 
@@ -2729,12 +2729,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 			p.rcPaint.left, p.rcPaint.top,
 			p.rcPaint.right, p.rcPaint.bottom);
 
-		ExcludeClipRect(hdc, 
+		ExcludeClipRect(hdc,
 			offset_width, offset_height,
 			offset_width+font_width*term->cols,
 			offset_height+font_height*term->rows);
 
-		Rectangle(hdc, p.rcPaint.left, p.rcPaint.top, 
+		Rectangle(hdc, p.rcPaint.left, p.rcPaint.top,
 			  p.rcPaint.right, p.rcPaint.bottom);
 
 		/* SelectClipRgn(hdc, NULL); */
@@ -2815,10 +2815,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 
 	    if ( !need_backend_resize && cfg.resize_action == RESIZE_EITHER &&
 		    (cfg.height != term->rows || cfg.width != term->cols )) {
-		/* 
+		/*
 		 * Great! It seems that both the terminal size and the
 		 * font size have been changed and the user is now dragging.
-		 * 
+		 *
 		 * It will now be difficult to get back to the configured
 		 * font size!
 		 *
@@ -3073,15 +3073,15 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 				SetCursor(LoadCursor(NULL, IDC_HAND));
 				term_update(term);
 			}
-		
+
 			goto KEY_END;
-		}	
+		}
 
 	case WM_KEYUP:
 		if (wParam == VK_CONTROL && term->cfg.url_ctrl_click) {
 			SetCursor(LoadCursor(NULL, IDC_IBEAM));
 			term_update(term);
-		
+
 			goto KEY_END;
 		}
 	KEY_END:
@@ -3166,7 +3166,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	    int n;
 	    char *buff;
 
-	    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS || 
+	    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS ||
 	        osVersion.dwPlatformId == VER_PLATFORM_WIN32s) break; /* no Unicode */
 
 	    if ((lParam & GCS_RESULTSTR) == 0) /* Composition unfinished. */
@@ -3292,10 +3292,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 				   TO_CHR_X(p.x),
 				   TO_CHR_Y(p.y), shift_pressed,
 				   control_pressed, is_alt_pressed());
-			term_mouse(term, b, translate_button(b),
-				   MA_RELEASE, TO_CHR_X(p.x),
-				   TO_CHR_Y(p.y), shift_pressed,
-				   control_pressed, is_alt_pressed());
+			// HACK (@unphased: I am removing the "button release" when triggered by mouse wheel to better replicate iTerm2's behavior)
+			// term_mouse(term, b, translate_button(b),
+			// 	   MA_RELEASE, TO_CHR_X(p.x),
+			// 	   TO_CHR_Y(p.y), shift_pressed,
+			// 	   control_pressed, is_alt_pressed());
 		    } /* else: not sure when this can fail */
 		} else {
 		    /* trigger a scroll */
@@ -3355,7 +3356,7 @@ static void sys_cursor_update(void)
 
     /* IMM calls on Win98 and beyond only */
     if(osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return; /* 3.11 */
-    
+
     if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
 	    osVersion.dwMinorVersion == 0) return; /* 95 */
 
@@ -3634,7 +3635,7 @@ void do_text_internal(Context ctx, int x, int y, wchar_t *text, int len,
                  * can leave 'droppings' even with the clip box! I
                  * suppose I could loop it one character at a time ...
                  * yuk.
-                 * 
+                 *
                  * Or ... I could do a test print with "W", and use +1
                  * or -1 for this shift depending on if the leftmost
                  * column is blank...
@@ -4584,7 +4585,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    alt_sum = 0;
     }
 
-    /* Okay we've done everything interesting; let windows deal with 
+    /* Okay we've done everything interesting; let windows deal with
      * the boring stuff */
     {
 	BOOL capsOn=0;
@@ -5020,7 +5021,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 	 * looked up in `unitab', we just copy straight over from
 	 * tdata. For each one that doesn't, we must WCToMB it
 	 * individually and produce a \u escape sequence.
-	 * 
+	 *
 	 * It would probably be more robust to just bite the bullet
 	 * and WCToMB each individual Unicode character one by one,
 	 * then MBToWC each one back to see if it was an accurate
@@ -5080,7 +5081,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		    attrBold  = attr[tindex] & ATTR_BOLD;
 		else
 		    attrBold  = 0;
-                
+
 		attrUnder = attr[tindex] & ATTR_UNDER;
 
                 /*
@@ -5524,7 +5525,7 @@ void set_iconic(void *frontend, int iconic)
  */
 void move_window(void *frontend, int x, int y)
 {
-    if (cfg.resize_action == RESIZE_DISABLED || 
+    if (cfg.resize_action == RESIZE_DISABLED ||
         cfg.resize_action == RESIZE_FONT ||
 	IsZoomed(hwnd))
        return;
@@ -5637,7 +5638,7 @@ static int get_fullscreen_rect(RECT * ss)
 	ss->left = ss->top = 0;
 	ss->right = GetSystemMetrics(SM_CXSCREEN);
 	ss->bottom = GetSystemMetrics(SM_CYSCREEN);
-*/ 
+*/
 	return GetClientRect(GetDesktopWindow(), ss);
 #endif
 }
@@ -5656,7 +5657,7 @@ static void make_full_screen()
 
 	if (is_full_screen())
 		return;
-	
+
     /* Remove the window furniture. */
     style = GetWindowLongPtr(hwnd, GWL_STYLE);
     style &= ~(WS_CAPTION | WS_BORDER | WS_THICKFRAME);
