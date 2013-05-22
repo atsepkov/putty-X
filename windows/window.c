@@ -4257,12 +4257,12 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    }
 	}
 
-	if (wParam == VK_BACK && shift_state == 0) {	/* Backspace */
+	if (wParam == VK_BACK && shift_state <= 1) {	/* Backspace or Shift Backspace */
 	    *p++ = (cfg.bksp_is_delete ? 0x7F : 0x08);
 	    *p++ = 0;
 	    return -2;
 	}
-	if (wParam == VK_BACK && shift_state == 1) {	/* Shift Backspace */
+	else if (wParam == VK_BACK) { 		/* Ctrl Backspace or Ctrl+Shift+Backspace */
 	    /* We do the opposite of what is configured */
 	    *p++ = (cfg.bksp_is_delete ? 0x08 : 0x7F);
 	    *p++ = 0;
