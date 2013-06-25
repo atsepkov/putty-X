@@ -3956,7 +3956,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
 #endif
 
-	if (wParam == VK_MENU && (HIWORD(lParam) & KF_EXTENDED)) {
+	if (wParam == VK_MENU) {
 	    keystate[VK_RMENU] = keystate[VK_MENU];
 	}
 
