@@ -4269,6 +4269,9 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    *p++ = 0;
 	    return -2;
 	}
+	char buf[512];
+	sprintf(buf, "A key is pressed: %d with shift state %d", wParam, shift_state);
+	MessageBox(NULL, buf, "title?", 0);
 	if (wParam == VK_TAB && shift_state == 2) {	/* Ctrl-Tab */
 	    p += sprintf((char *) p, "\x1B[27;5;9~");
 	    return p - output;
