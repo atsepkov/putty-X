@@ -4274,6 +4274,10 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 		p += sprintf((char *) p, "\x1B[21~");
 		return p - output;
 	}
+	if (wParam == VK_F10 && shift_state == 1 && left_alt) { // Shift+Alt+F10
+		p += sprintf((char *) p, "\x1B\x1B[34~");
+		return p - output;
+	}
 	if (wParam == VK_F10 && shift_state == 1) { // Shift+F10
 		p += sprintf((char *) p, "\x1B[34~");
 		return p - output;
