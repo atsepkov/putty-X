@@ -4268,6 +4268,43 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    *p++ = 0;
 	    return -2;
 	}
+
+
+	// Here goes my special extensive F10 functionality (can't figure out the other code so I will explicitly branch)
+	if (wParam == VK_F10 && shift_state == 0 && !left_alt) { // F10
+		p += sprintf((char *) p, "\x1B[21~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 1 && !left_alt) { // Shift+F10
+		p += sprintf((char *) p, "\x1B[34~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 0 && left_alt) { // Alt+F10
+		p += sprintf((char *) p, "\x1B\x1B[21~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 1 && left_alt) { // Shift+Alt+F10
+		p += sprintf((char *) p, "\x1B\x1B[34~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 2 && !left_alt) { // Ctrl+F10
+		p += sprintf((char *) p, "\x1B[44~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 3 && !left_alt) { // Shift+Ctrl+F10
+		p += sprintf((char *) p, "\x1B[54~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 2 && left_alt) { // Alt+Ctrl+F10
+		p += sprintf((char *) p, "\x1B\x1B[44~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 3 && left_alt) { // Shift+Alt+Ctrl+F10
+		p += sprintf((char *) p, "\x1B\x1B[54~");
+		return p - output;
+	}
+
+
 	if (wParam == VK_TAB && shift_state == 2) {	/* Ctrl-Tab */
 	    p += sprintf((char *) p, "\x1B[27;5;9~");
 	    return p - output;
