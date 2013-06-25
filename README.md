@@ -1,6 +1,6 @@
 My modifications to Alex's putty-X are primarily in various key related areas (and hard-coded); an incomplete list of changes follows:
 
-+ F10 modifier keys are supported with hard-coded keycodes <Esc>[21~ for F10 (some sort of rxvt? standard) <Esc>[34~ for Shift+F10 (also "standard"), <Esc>[44~ for Ctrl+F10 (definitely not standard), and <Esc>[54~ for Ctrl+Shift+F10 (not this either). The Alt variants have an extra <Esc>.
++ F10 modifier keys are supported with hard-coded keycodes ^[[21~ for F10 (some sort of rxvt? standard) ^[[34~ for Shift+F10 (also "standard"), ^[[44~ for Ctrl+F10 (definitely not standard), and ^[[54~ for Ctrl+Shift+F10 (not this either). The Alt variants have an extra ^[.
 + The right Alt key code for replicating AltGr has been gutted with surgical strikes so that it should function similarly to the left Alt. Because I am an ignorant American.
 + Backspace's behavior selection between ^? and ^H is done with the Ctrl key, instead of Shift. Whether backspace defaults to ^? or not is configurable in the options.
 
