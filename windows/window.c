@@ -3983,7 +3983,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	(HIWORD(lParam) & (KF_UP | KF_REPEAT)) == KF_REPEAT)
 	return 0;
 
-    if ((HIWORD(lParam) & KF_ALTDOWN) && (keystate[VK_RMENU] & 0x80) == 0)
+    if ((HIWORD(lParam) & KF_ALTDOWN))
 	left_alt = 1;
 
     key_down = ((HIWORD(lParam) & KF_UP) == 0);
