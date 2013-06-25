@@ -3955,9 +3955,6 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    memcpy(oldstate, keystate, sizeof(oldstate));
 	}
 #endif
-	char buf[512];
-	sprintf(buf, "A key is pressed: %d with shift state %d", wParam, shift_state);
-	MessageBox(NULL, buf, "title?", 0);
 
 	if (wParam == VK_MENU) {
 	    keystate[VK_RMENU] = keystate[VK_MENU];
@@ -4005,7 +4002,11 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
     shift_state = ((keystate[VK_SHIFT] & 0x80) != 0)
 	+ ((keystate[VK_CONTROL] & 0x80) != 0) * 2;
 
-    /* Note if AltGr was pressed and if it was used as a compose key */
+	char buf[512];
+	sprintf(buf, "A key is pressed: %d with shift state %d", wParam, shift_state);
+	MessageBox(NULL, buf, "title?", 0);
+
+	/* Note if AltGr was pressed and if it was used as a compose key */
     if (!compose_state) {
 	compose_key = 0x100;
 	if (cfg.compose_key) {
