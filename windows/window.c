@@ -4265,7 +4265,8 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
 	else if (wParam == VK_BACK) {	/* Ctrl Backspace or Ctrl Shift Backspace */
 	    /* We do the opposite of what is configured */
-		MessageBox(NULL, "backspace pressed with shift_state > 1", "weird", 0);
+		if (shift_state == 2) MessageBox(NULL, "backspace pressed with shift_state = 2", "weird", 0);
+		if (shift_state == 3) MessageBox(NULL, "backspace pressed with shift_state = 3", "weird", 0);
 	    *p++ = (cfg.bksp_is_delete ? 0x08 : 0x7F);
 	    *p++ = 0;
 	    return -2;
