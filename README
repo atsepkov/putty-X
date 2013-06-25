@@ -1,4 +1,3 @@
-
 Putty-X README:
 
 Putty-X is a customized version of Putty that behaves more similar to RXVT-Unicode (and Xterm). It implements proper mouse support for all extended modes, much better meta-key combination support (mirroring Xterm/Mintty, supporting meta character prefixes for function, arrow, and other keys), italic text support, better bold font rendering (no jagged edges and ability to independently control bold font color - like with real *nix terminals), and ability to read settings from Xresources file.
