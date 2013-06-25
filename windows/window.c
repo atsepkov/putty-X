@@ -3956,7 +3956,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
 #endif
 
-	if (wParam == VK_MENU) {
+	if (wParam == VK_MENU && (HIWORD(lParam) & KF_EXTENDED)) {
 	    keystate[VK_RMENU] = keystate[VK_MENU];
 	}
 
@@ -4257,16 +4257,13 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    }
 	}
 
-	if (wParam == VK_BACK && shift_state <= 1) {	/* Backspace or Shift+Backspace */
-		// MessageBox(NULL, "backspace pressed with shift_state == 0", "weird", 0);
+	if (wParam == VK_BACK && shift_state <= 1) {	/* Backspace or Shift Backspace */
 	    *p++ = (cfg.bksp_is_delete ? 0x7F : 0x08);
 	    *p++ = 0;
 	    return -2;
 	}
-	else if (wParam == VK_BACK) {	/* Ctrl Backspace or Ctrl Shift Backspace */
+	else if (wParam == VK_BACK) { 		/* Ctrl Backspace or Ctrl+Shift+Backspace */
 	    /* We do the opposite of what is configured */
-		if (shift_state == 2) MessageBox(NULL, "backspace pressed with shift_state = 2", "weird", 0);
-		if (shift_state == 3) MessageBox(NULL, "backspace pressed with shift_state = 3", "weird", 0);
 	    *p++ = (cfg.bksp_is_delete ? 0x08 : 0x7F);
 	    *p++ = 0;
 	    return -2;
