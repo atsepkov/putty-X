@@ -4258,7 +4258,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
 
 	if (wParam == VK_BACK && shift_state <= 1) {	/* Backspace or Shift+Backspace */
-		MessageBox(NULL, "backspace pressed with shift_state == 0", "weird", 0);
+		// MessageBox(NULL, "backspace pressed with shift_state == 0", "weird", 0);
 	    *p++ = (cfg.bksp_is_delete ? 0x7F : 0x08);
 	    *p++ = 0;
 	    return -2;
