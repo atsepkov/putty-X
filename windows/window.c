@@ -3983,7 +3983,7 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	(HIWORD(lParam) & (KF_UP | KF_REPEAT)) == KF_REPEAT)
 	return 0;
 
-    if ((HIWORD(lParam) & KF_ALTDOWN) && (keystate[VK_RMENU] & 0x80) == 0)
+    if ((HIWORD(lParam) & KF_ALTDOWN))
 	left_alt = 1;
 
     key_down = ((HIWORD(lParam) & KF_UP) == 0);
@@ -4076,8 +4076,8 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
     }
 
-    /* If a key is pressed and AltGr is not active */
-    if (key_down && (keystate[VK_RMENU] & 0x80) == 0 && !compose_state) {
+    /* Ripping out the AltGr stuff so I can gain right alt functionality everywhere */
+    if (key_down) {
 	/* Okay, prepare for most alts then ... */
 	if (left_alt && shift_state != 1 && !(wParam == VK_UP || wParam == VK_DOWN || wParam == VK_RIGHT || wParam == VK_LEFT || wParam == VK_HOME || wParam == VK_END))
 	    *p++ = '\033';
@@ -4257,17 +4257,40 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	    }
 	}
 
-	if (wParam == VK_BACK && shift_state == 0) {	/* Backspace */
+	if (wParam == VK_BACK && shift_state <= 1) {	/* Backspace or Shift Backspace */
 	    *p++ = (cfg.bksp_is_delete ? 0x7F : 0x08);
 	    *p++ = 0;
 	    return -2;
 	}
-	if (wParam == VK_BACK && shift_state == 1) {	/* Shift Backspace */
+	else if (wParam == VK_BACK) { 		/* Ctrl Backspace or Ctrl+Shift+Backspace */
 	    /* We do the opposite of what is configured */
 	    *p++ = (cfg.bksp_is_delete ? 0x08 : 0x7F);
 	    *p++ = 0;
 	    return -2;
 	}
+
+	// Here goes my special extensive F10 functionality (can't figure out the other code so I will explicitly branch)
+	if (wParam == VK_F10 && shift_state == 0) { // F10
+		p += sprintf((char *) p, "\x1B[21~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 1 && left_alt) { // Shift+Alt+F10
+		p += sprintf((char *) p, "\x1B\x1B[34~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 1) { // Shift+F10
+		p += sprintf((char *) p, "\x1B[34~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 2) { // Ctrl+F10
+		p += sprintf((char *) p, "\x1B[44~");
+		return p - output;
+	}
+	if (wParam == VK_F10 && shift_state == 3) { // Shift+Ctrl+F10
+		p += sprintf((char *) p, "\x1B[54~");
+		return p - output;
+	}
+
 	if (wParam == VK_TAB && shift_state == 2) {	/* Ctrl-Tab */
 	    p += sprintf((char *) p, "\x1B[27;5;9~");
 	    return p - output;

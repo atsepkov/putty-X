@@ -5879,8 +5879,8 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
 		term->mouse_is_down = 0;
 		break;
 	      case MA_CLICK:
-			  if (term->mouse_is_down == braw) {// HACK: ADDED FOR hyperlink stuff
-				  unlineptr(ldata); 
+			  if (term->mouse_is_down == braw && braw != MBT_WHEEL_UP && braw != MBT_WHEEL_DOWN) {// HACK: ADDED FOR hyperlink stuff // MORE HACKING (@unphased: allow sequences of mouse wheel up and mouse wheel down to pass through)
+				  unlineptr(ldata);
 				  return;
 			  }
 		term->mouse_is_down = braw;
@@ -6378,10 +6378,10 @@ void term_key(Terminal *term, Key_Sym keysym, wchar_t *text, size_t tlen,
 	goto done;
       case PK_BACKSPACE:
 	    if (modifiers == 0)
-		*p++ = (term->cfg.bksp_is_delete ? 0x7F : 0x08);
-	    else if (modifiers == PKM_SHIFT)
+		  *p++ = (term->cfg.bksp_is_delete ? 0x7F : 0x08);
+	    else if (modifiers == PKM_CONTROL)
 		/* We do the opposite of what is configured */
-		*p++ = (term->cfg.bksp_is_delete ? 0x08 : 0x7F);
+		  *p++ = (term->cfg.bksp_is_delete ? 0x08 : 0x7F);
 	    else break;
 	    goto done;
       case PK_TAB:
