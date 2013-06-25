@@ -4270,19 +4270,19 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
 
 	// Here goes my special extensive F10 functionality (can't figure out the other code so I will explicitly branch)
-	if (wParam == VK_F10 && shift_state == 0 && !left_alt) { // F10
+	if (wParam == VK_F10 && shift_state == 0) { // F10
 		p += sprintf((char *) p, "\x1B[21~");
 		return p - output;
 	}
-	if (wParam == VK_F10 && shift_state == 1 && !left_alt) { // Shift+F10
+	if (wParam == VK_F10 && shift_state == 1) { // Shift+F10
 		p += sprintf((char *) p, "\x1B[34~");
 		return p - output;
 	}
-	if (wParam == VK_F10 && shift_state == 2 && !left_alt) { // Ctrl+F10
+	if (wParam == VK_F10 && shift_state == 2) { // Ctrl+F10
 		p += sprintf((char *) p, "\x1B[44~");
 		return p - output;
 	}
-	if (wParam == VK_F10 && shift_state == 3 && !left_alt) { // Shift+Ctrl+F10
+	if (wParam == VK_F10 && shift_state == 3) { // Shift+Ctrl+F10
 		p += sprintf((char *) p, "\x1B[54~");
 		return p - output;
 	}
