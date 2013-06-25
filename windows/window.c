@@ -4076,8 +4076,8 @@ static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
 	}
     }
 
-    /* If a key is pressed and AltGr is not active */
-    if (key_down && (keystate[VK_RMENU] & 0x80) == 0 && !compose_state) {
+    /* Ripping out the AltGr stuff so I can gain right alt functionality everywhere */
+    if (key_down) {
 	/* Okay, prepare for most alts then ... */
 	if (left_alt && shift_state != 1 && !(wParam == VK_UP || wParam == VK_DOWN || wParam == VK_RIGHT || wParam == VK_LEFT || wParam == VK_HOME || wParam == VK_END))
 	    *p++ = '\033';
