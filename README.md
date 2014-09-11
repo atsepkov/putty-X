@@ -8,4 +8,7 @@ Those are the only differences between this branch and atsepkov's. There is one 
 
 I include win32 builds corresponding to their commit hashes.
 
-
+I also include a folder which is not related for building putty which contains 
+font files for use on windows (tested on Windows 7) with putty to get 
+chevron-style delimiter characters for powerline. If you don't know what that 
+is, it's not very important. 
