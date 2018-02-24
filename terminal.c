@@ -6378,10 +6378,10 @@ void term_key(Terminal *term, Key_Sym keysym, wchar_t *text, size_t tlen,
 	goto done;
       case PK_BACKSPACE:
 	    if (modifiers == 0)
-		*p++ = (term->cfg.bksp_is_delete ? 0x7F : 0x08);
-	    else if (modifiers == PKM_SHIFT)
+		  *p++ = (term->cfg.bksp_is_delete ? 0x7F : 0x08);
+	    else if (modifiers == PKM_CONTROL)
 		/* We do the opposite of what is configured */
-		*p++ = (term->cfg.bksp_is_delete ? 0x08 : 0x7F);
+		  *p++ = (term->cfg.bksp_is_delete ? 0x08 : 0x7F);
 	    else break;
 	    goto done;
       case PK_TAB:
